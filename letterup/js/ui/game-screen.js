@@ -2,6 +2,7 @@
 // Hypothèses utilisées : H3/H8 (slots surlignés), H9 (fin par sac épuisé), H2/H19 (cases noircies : poses refusées ; coop : troncs),
 // H10′ (Terminer en coop), H11 (arbres), H12′ (chevalet, objectif et réserve communs) — voir messages.js et turn-state.js.
 // LU-18 (H15, H22) : en coop à deux, pas de tour ; le coup du coéquipier efface le brouillon avec un toast, `stale` aussi.
+// H23 : flèches ↶ ↷ (quart de tour du plateau) tant qu'aucune tuile n'est posée ; un tour du plateau efface le brouillon.
 // En coop : bouton « Terminer » et panneau d'objectif commun ; « Renouveler » est masqué.
 import { COOP_MAX_SCORE, JOKER, MOTIFS, coopScore } from '../engine/index.js';
 import { renderBoard } from './board-view.js';
@@ -9,7 +10,7 @@ import { renderRack, identityOrder, shuffleOrder } from './rack-view.js';
 import { attachInput } from './input.js';
 import { pickLetter, confirmDialog, toast } from './dialogs.js';
 import { DEFAULT_NAMES, LEVEL_NAMES, coopCountsText, coopReserveText, describeEvent, draftClearedMessage, errorMessage, eventToast, nextTierText, previewSlotsText, starsLine, turnStatus } from './messages.js';
-import { blockedReason, canDropOn, computePreview, initialTurn, pendingForBoard, reduceTurn, toPlacements } from './turn-state.js';
+import { blockedReason, canDropOn, computePreview, initialTurn, pendingForBoard, reduceTurn, isRotationOnly, rotateControls, toPlacements } from './turn-state.js';
 
 const LOG_SIZE = 10;
 
@@ -39,11 +40,18 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
   status.hidden = !turnStatusLine; // en partie réseau, la barre #status (status.js) porte l'état du tour
   const scoreboard = el('div', 'scoreboard');
   const boardHolder = el('div', 'board-holder');
+  const rotateBar = el('div', 'board-rotate');
+  const rotateButtons = [['L', '↶', 'gauche'], ['R', '↷', 'droite']].map(([dir, glyph, side]) => {
+    const b = actionButton(`rotate-${dir}`, glyph, 'btn secondary');
+    b.setAttribute('aria-label', `Tourner le plateau d’un quart de tour vers la ${side}`);
+    return b;
+  });
+  rotateBar.append(...rotateButtons);
   const preview = el('div', 'preview');
   const rackHolder = el('div', 'rack-holder');
   const actions = el('div', 'actions');
   const logList = el('ol', 'move-log');
-  root.replaceChildren(status, scoreboard, boardHolder, preview, rackHolder, actions, logList);
+  root.replaceChildren(status, scoreboard, boardHolder, rotateBar, preview, rackHolder, actions, logList);
 
   const dispatch = (a) => { turn = reduceTurn(turn, a); render(); };
   // Coop : pas de tour (H12′, D10) — chaque participant peut poser à tout moment.
@@ -151,6 +159,10 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
       : [];
     renderBoard(boardHolder, view, { pending: pendingForBoard(turn.pending, rack), highlight, selectable });
 
+    const rotation = rotateControls(view, { myTurn, busy, renew: turn.renew });
+    rotateBar.hidden = !rotation.visible;
+    for (const b of rotateButtons) b.disabled = rotation.disabled;
+
     renderPreview(p, view.mode);
     renderRack(rackHolder, {
       rack,
@@ -221,6 +233,16 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
         render();
         break;
       }
+      case 'rotate-L':
+      case 'rotate-R': {
+        busy = true;
+        render();
+        const r = await controller.act({ type: 'rotate', dir: action.slice(-1) });
+        busy = false;
+        if (!r.ok) onFailure(r);
+        render();
+        break;
+      }
       case 'pass': {
         if (!await confirmDialog({ message: 'Plus aucun mot possible ? La partie s’arrête pour toute l’équipe.', confirmLabel: 'Terminer' })) break;
         busy = true;
@@ -240,7 +262,7 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
     // Pas de toast « coéquipier » si mon propre coup est en vol : le rejet `stale` s'en charge (A25).
     const notice = draftClearedMessage(events, { mode: view.mode, participant: controller.participant, hadDraft: turn.pending.length > 0 && !busy });
     turn = initialTurn();
-    order = identityOrder(view.players[controller.you].rack.length);
+    if (!isRotationOnly(events)) order = identityOrder(view.players[controller.you].rack.length);
     log = [...events.map((ev) => describeEvent(ev, names, view.mode)).filter(Boolean).reverse(), ...log];
     const played = events.find((ev) => ev.type === 'played');
     lastMove = {
@@ -251,7 +273,7 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
       const message = eventToast(ev, names, view.mode);
       if (message) toast(message);
     }
-    if (hotseat && view.mode !== 'coop' && view.status === 'playing') toast(`À ${names[view.current]} de jouer`);
+    if (hotseat && view.mode !== 'coop' && view.status === 'playing' && !isRotationOnly(events)) toast(`À ${names[view.current]} de jouer`);
     render();
     if (notice) toast(notice);
   });

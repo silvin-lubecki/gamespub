@@ -1,10 +1,10 @@
-// Protocole JSON v2 (DESIGN.md §9.2) : `rev` dans `action`, `ack` dans `state` (LU-16, D10–D12). H2 (motifs coop par niveau) : valide les réglages coop.
+// Protocole JSON v3 (DESIGN.md §9.2) : `rev` dans `action`, `ack` dans `state` (LU-16, D10–D12) ; v3 : action `rotate` (H23). H2 (motifs coop par niveau) : valide les réglages coop.
 import { COOP_MOTIFS } from '../engine/layout.js';
 // Hypothèse réseau A2 : parseMessage renvoie une copie normalisée (champs connus uniquement).
-export const PROTOCOL_VERSION = 2;
+export const PROTOCOL_VERSION = 3; // v3 (H23) : action `rotate`
 export const MESSAGE_TYPES = ['hello', 'welcome', 'refused', 'state', 'action', 'reject', 'ping', 'pong', 'new-game', 'resync'];
 export const REFUSED_REASONS = ['version', 'full'];
-export const ACTION_TYPES = ['play', 'renew', 'pass'];
+export const ACTION_TYPES = ['play', 'renew', 'pass', 'rotate'];
 
 export const makeHello = (clientId) => ({ t: 'hello', v: PROTOCOL_VERSION, clientId });
 const settingsPayload = (s) => ({
@@ -39,6 +39,7 @@ function parseSettings(s) {
 function parseAction(a) {
   if (!isObject(a)) return null;
   if (a.type === 'pass') return { type: 'pass' };
+  if (a.type === 'rotate') return a.dir === 'L' || a.dir === 'R' ? { type: 'rotate', dir: a.dir } : null;
   if (a.type === 'renew') {
     if (!Array.isArray(a.rackIndices) || !a.rackIndices.every((i) => isInt(i))) return null;
     return { type: 'renew', rackIndices: [...a.rackIndices] };

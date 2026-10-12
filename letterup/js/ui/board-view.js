@@ -1,8 +1,8 @@
 // Rendu du plateau (LU-09, DESIGN.md §10.3-10.4, §5.2).
 // Hypothèses utilisées : H1 (motifs et disposition originaux), H2 (cases noircies sur le motif coop), H19 (coop : troncs),
-// H3 (28 emplacements de bord T/B/L/R 0..6). Module pur à l'import : aucun accès à `document` hors de renderBoard.
+// H3 (28 emplacements de bord T/B/L/R 0..6), H23 (rotation du plateau : motifs affichés pivotés). Module pur à l'import : aucun accès à `document` hors de renderBoard.
 import { CELLS, EDGE_SLOTS, colOf, rowOf } from '../engine/constants.js';
-import { LAYOUT, MOTIFS } from '../engine/layout.js';
+import { LAYOUT, MOTIFS, layoutAt } from '../engine/layout.js';
 
 /** Taille de la grille d'affichage : 7×7 cases + 1 rangée/colonne de pions de chaque côté (coins vides). */
 export const GRID = 9;
@@ -51,12 +51,13 @@ function highlightClass(highlight, key, id) {
  *  - selectable : tableau ou Set de cases.
  */
 export function boardModel(viewOrState, { pending = [], highlight = {}, selectable = [] } = {}) {
-  const { board, locked = [], mottes = [], edges = {}, mode = 'versus' } = viewOrState;
+  const { board, locked = [], mottes = [], edges = {}, mode = 'versus', rotation = 0 } = viewOrState;
   const pendingByCell = new Map(pending.map((p) => [p.cell, p]));
   const selectableSet = new Set(selectable);
   const motteSet = new Set(mottes);
 
-  const cells = LAYOUT.map((code, cell) => {
+  const cells = LAYOUT.map((_, cell) => {
+    const code = layoutAt(cell, rotation);
     const stack = board[cell] ?? [];
     const top = stack.length ? stack[stack.length - 1] : null;
     const p = pendingByCell.get(cell);
@@ -186,6 +187,7 @@ function renderSlot(s, spriteHref) {
  */
 export function renderBoard(container, viewOrState, { pending, highlight, selectable, spriteHref = DEFAULT_SPRITE } = {}) {
   const board = el('div', 'board');
+  board.style.setProperty('--rotation', `${(viewOrState.rotation ?? 0) * 90}deg`);
   for (const item of boardModel(viewOrState, { pending, highlight, selectable })) {
     board.append(item.kind === 'cell' ? renderCell(item, spriteHref) : renderSlot(item, spriteHref));
   }

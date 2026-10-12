@@ -1,14 +1,14 @@
 // Création de partie et boucle de tour compétitive (DESIGN.md §5.3, §6.1, §6.2, §6.6).
 // Hypothèses utilisées : H4 (Y voyelle, joker ignoré, test à la distribution initiale seulement),
 // H5 (premier joueur : joker re-tiré, égalité re-tirée), H9 (fin « sac insuffisant »), H12′ (coop : un seul
-// chevalet d'équipe, siège 0, pas de tour), H10′ (coop : passer = terminer), H18 (état v2). Le mode coopératif
+// chevalet d'équipe, siège 0, pas de tour), H10′ (coop : passer = terminer), H18 (état v2), H23 (rotation du plateau, sens libre). Le mode coopératif
 // (§7) est branché ici (LU-06, LU-15).
-import { CELLS, JOKER, PAWNS, RACK_SIZE, STATE_VERSION, VOWELS } from './constants.js';
+import { CELLS, JOKER, PAWNS, RACK_SIZE, STATE_VERSION, VOWELS, rotateCell } from './constants.js';
 import { createBag, draw, returnTiles } from './bag.js';
 import { COOP_MOTIFS, motteCells } from './layout.js';
 import { seedState, shuffle } from './rng.js';
 import { placeTiles, validatePlay } from './placement.js';
-import { height } from './board.js';
+import { height, isBoardEmpty } from './board.js';
 import { applyTerritories } from './territory.js';
 import { coopResult, isCoopMax } from './coop.js';
 
@@ -99,7 +99,7 @@ export function createGame({ mode, seed, coop } = {}) {
     board: Array.from({ length: CELLS }, () => []),
     locked: Array(CELLS).fill(false),
     mottes,
-    orientation: null,
+    rotation: 0,
     edges: {},
     current: first.current,
     turn: 1,
@@ -168,7 +168,6 @@ function applyPlay(state, player, action, dict) {
   state.board = placeTiles(state.board, rack, placements);
   const used = new Set(placements.map((p) => p.rackIndex));
   state.players[player].rack = rack.filter((_, i) => !used.has(i));
-  state.orientation = check.orientation;
   events.push({ type: 'played', player, words: check.words, tiles });
 
   const territories = applyTerritories(state, player, check.words, { covering });
@@ -198,6 +197,17 @@ function applyPlay(state, player, action, dict) {
   return { ok: true, state, events };
 }
 
+// H23 : quart de tour du plateau, seulement tant qu'il est vide ; ne consomme pas le tour. Pivote les mottes (coop) et
+// le dessin du fond (`rotation`, absent = 0 pour les anciens états v2).
+function applyRotate(state, action) {
+  if (action.dir !== 'L' && action.dir !== 'R') return { ok: false, error: 'bad-action' };
+  if (!isBoardEmpty(state.board)) return { ok: false, error: 'rotate-locked' };
+  const k = action.dir === 'R' ? 1 : -1;
+  state.mottes = state.mottes.map((c) => rotateCell(c, k)).sort((a, b) => a - b);
+  state.rotation = (((state.rotation ?? 0) + k) % 4 + 4) % 4;
+  return { ok: true, state, events: [{ type: 'rotated', player: state.current, dir: action.dir, rotation: state.rotation }] };
+}
+
 function applyRenew(state, player, action) {
   const { rackIndices } = action;
   const rack = state.players[player].rack;
@@ -221,7 +231,8 @@ function applyRenew(state, player, action) {
 
 /**
  * Applique une action → `{ ok, state, events }` | `{ ok: false, error }`. Ne mute jamais `state`.
- * Actions : `{ type: 'play', placements }`, `{ type: 'renew', rackIndices }` (compétitif), `{ type: 'pass' }` (coop).
+ * Actions : `{ type: 'play', placements }`, `{ type: 'renew', rackIndices }` (compétitif), `{ type: 'pass' }` (coop),
+ * `{ type: 'rotate', dir: 'L'|'R' }` (H23, plateau vide seulement).
  */
 export function applyAction(state, player, action, dict) {
   if (state.status !== 'playing') return { ok: false, error: 'game-over' };
@@ -231,6 +242,8 @@ export function applyAction(state, player, action, dict) {
   switch (action.type) {
     case 'play':
       return applyPlay(next, player, action, dict);
+    case 'rotate':
+      return applyRotate(next, action);
     case 'renew':
       return state.mode === 'versus' ? applyRenew(next, player, action) : { ok: false, error: 'renew-forbidden' };
     case 'pass':

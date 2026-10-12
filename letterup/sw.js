@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'letterup-0.0.2';
+const CACHE_VERSION = 'letterup-0.0.3';
 const PRECACHE = [
   './',
   './index.html',

@@ -61,7 +61,6 @@ export const ERROR_MESSAGES = {
   'stack-full': 'Cette pile est déjà de 3 lettres.',
   'same-letter': 'On ne peut pas recouvrir une lettre par la même lettre.',
   'not-aligned': 'Les lettres doivent être posées sur une même ligne ou une même colonne.',
-  'wrong-orientation': "Le sens de jeu est imposé par le premier mot.",
   gap: 'Les lettres posées doivent former un mot continu, sans trou.',
   'first-must-cover-sun': 'Le premier mot doit couvrir la case soleil, au centre.',
   'first-too-short': 'Le premier mot doit faire au moins 2 lettres.',
@@ -71,6 +70,7 @@ export const ERROR_MESSAGES = {
   'renew-empty': 'Choisissez au moins une lettre à renouveler.',
   'bag-too-small': 'Il ne reste pas assez de lettres dans le sac.',
   'pass-forbidden': 'Passer son tour est réservé au mode coopératif.',
+  'rotate-locked': 'Le plateau ne peut plus tourner : le premier mot est posé.',
 };
 
 /** Erreurs propres au réseau (LU-11), séparées de ERROR_MESSAGES (codes du moteur). */
@@ -85,15 +85,12 @@ const COOP_ERROR_MESSAGES = {
   'cell-locked': 'Cette case est verrouillée par un mot traversant.',
 };
 
-/** Message français pour un code d'erreur ; `words` (mots fautifs) et `orientation` précisent certains codes ; `mode` : vocabulaire coop. */
-export function errorMessage(code, { words = [], orientation = null, mode = 'versus' } = {}) {
+/** Message français pour un code d'erreur ; `words` (mots fautifs) précise certains codes ; `mode` : vocabulaire coop. */
+export function errorMessage(code, { words = [], mode = 'versus' } = {}) {
   if (mode === 'coop' && COOP_ERROR_MESSAGES[code]) return COOP_ERROR_MESSAGES[code];
   if (code === 'invalid-word' && words.length > 0) {
     const list = words.map((w) => w.word ?? w).join(', ');
     return `${words.length > 1 ? 'Mots inconnus' : 'Mot inconnu'} : ${list}`;
-  }
-  if (code === 'wrong-orientation' && orientation) {
-    return `Le premier mot était ${orientation === 'H' ? 'horizontal' : 'vertical'} : tous les mots suivants doivent suivre ce sens.`;
   }
   return ERROR_MESSAGES[code] ?? NETWORK_ERROR_MESSAGES[code] ?? `Erreur inattendue (${code})`;
 }
@@ -128,9 +125,12 @@ const inSentence = (who) => (who === COOP_SELF ? 'vous' : who === COOP_MATE ? 'v
 
 /** Message de brouillon effacé par le coup du coéquipier (H15) ; `null` si rien à dire. */
 export const TEAMMATE_PLAYED = 'Votre coéquipier a joué : vos lettres sont revenues sur le chevalet.';
+export const TEAMMATE_ROTATED = 'Votre coéquipier a tourné le plateau : vos lettres sont revenues sur le chevalet.';
 export function draftClearedMessage(events, { mode, participant, hadDraft }) {
   if (mode !== 'coop' || !hadDraft) return null;
-  return events.some((e) => e.by !== undefined && e.by !== participant) ? TEAMMATE_PLAYED : null;
+  const theirs = events.filter((e) => e.by !== undefined && e.by !== participant);
+  if (theirs.length === 0) return null;
+  return theirs.every((e) => e.type === 'rotated') ? TEAMMATE_ROTATED : TEAMMATE_PLAYED;
 }
 
 /** Noms en partie réseau : le joueur local est signalé par « vous ». */
@@ -159,6 +159,8 @@ export function describeEvent(e, names = DEFAULT_NAMES, mode = 'versus') {
       return `${names[e.player]} ${e.captured ? 'reprend' : 'gagne'} le territoire ${e.slot} (${slotLabel(e.slot)})`;
     case 'traverse': return `${mode === 'coop' ? 'Mot traversant' : 'Traverse'} ! ${e.line.dir === 'H' ? 'rangée' : 'colonne'} ${e.line.index + 1} (${inSentence(who)})`;
     case 'tree': return `🌳 Un arbre est planté en ${e.slot} (${slotLabel(e.slot)})`;
+    case 'rotated': // H23
+      return `${who} ${who === COOP_SELF ? 'tournez' : 'tourne'} le plateau d’un quart de tour vers ${e.dir === 'R' ? 'la droite' : 'la gauche'}`;
     case 'renewed': return `${names[e.player]} renouvelle ${e.count} lettre${e.count > 1 ? 's' : ''}`;
     case 'passed': return mode === 'coop' ? `${who} ${who === COOP_SELF ? 'terminez' : 'termine'} la partie` : `${names[e.player]} passe son tour`; // H10′
     case 'game-over': return describeResult(e.result, names);

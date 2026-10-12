@@ -1,4 +1,5 @@
 // Plateau 7×7 (DESIGN.md §10.3). H1 : disposition et motifs originaux ; H2 : 6 motifs coop (2 par niveau).
+import { rotateCell } from './constants.js';
 const ROWS = [
   'M N E S V E S',
   'V G M L N L C',
@@ -28,5 +29,9 @@ export const MOTIFS = {
 
 export const COOP_MOTIFS = { easy: ['F', 'C'], medium: ['L', 'G'], hard: ['E', 'S'] };
 
-/** Cases (indices 0–48) portant le motif `motif` : emplacement des mottes en coop (H2). */
-export const motteCells = (motif) => LAYOUT.flatMap((code, cell) => (code === motif ? [cell] : []));
+/** Motif affiché en `cell` quand le plateau a tourné de `rotation` quarts de tour horaires (H23). */
+export const layoutAt = (cell, rotation = 0) => LAYOUT[rotateCell(cell, -rotation)];
+
+/** Cases (indices 0–48) portant le motif `motif` : emplacement des mottes en coop (H2, H23 : après rotation). */
+export const motteCells = (motif, rotation = 0) =>
+  LAYOUT.flatMap((_, cell) => (layoutAt(cell, rotation) === motif ? [cell] : []));
