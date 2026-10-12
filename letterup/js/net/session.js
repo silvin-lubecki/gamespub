@@ -1,10 +1,16 @@
 // Sessions réseau hôte autoritaire / invité (DESIGN.md §9.2). Aucune hypothèse H1–H14 (règles) n'est utilisée ici.
 // Hypothèses réseau LU-08 :
 //  A1 l'API suit l'issue #9 : onChange(view, events) ; le statut passe par onStatus.
-//  A4 l'invité accepte tout `state` reçu (hôte autoritaire, transport FIFO) ; rev reste monotone, rematch compris.
+//  A4 l'invité accepte tout `state` reçu (hôte autoritaire) et mémorise son `rev` pour ses actions (LU-16) ; rev reste monotone, rematch compris.
 //  A5 hôte = joueur 0, invité = joueur 1 ; l'hôte reçoit ses connexions via host.accept(transport).
 //  A6 l'invité se reconnecte via une fabrique connect() qui renvoie un nouveau transport.
 //  A7 la graine du rematch vient de randomSeed() (injectable).
+// LU-15 : en coop il n'y a qu'un siège moteur (H12′) : hôte et invité agissent tous deux sur le siège 0
+// (seatOf). H18 : restore() refuse un état de version ≠ STATE_VERSION.
+// LU-16 (protocole v2, D10–D12) : H15 l'hôte sérialise (premier arrivé, premier servi) et rejette `stale` toute action de
+// l'invité dont `rev` ≠ révision courante (les deux modes) ; `state` porte `ack` = seq de l'action de l'invité ; H22 chaque
+// événement diffusé porte `by` (0 hôte, 1 invité), ajouté ici et non par le moteur ; H16 un seul invité.
+//  A22 restore() fixe rev = max(rev + 1, snap.rev) : la révision change toujours, donc toute action en vol devient `stale`.
 import * as engineModule from '../engine/index.js';
 import {
   PROTOCOL_VERSION, makeHello, makeWelcome, makeRefused, makeState, makeAction, makeReject,
@@ -56,7 +62,9 @@ export function createHostSession({
   const setStatus = (s) => { if (s !== status) { status = s; statuses.emit(s); } };
   const connected = () => guest !== null && guest.conn !== null;
   const sendGuest = (msg) => { if (connected()) guest.conn.transport.send(msg); };
-  const sendState = (events = []) => sendGuest(makeState(rev, viewFor(state, 1), events));
+  // D9 : participant 0 = hôte, 1 = invité ; en coop, tous deux jouent le siège 0 (chevalet d'équipe).
+  const seatOf = (participant) => (state.mode === 'coop' ? 0 : participant);
+  const sendState = (events = [], ack) => sendGuest(makeState(rev, viewFor(state, seatOf(1)), events, ack));
 
   const drop = (conn) => {
     if (!conn.alive) return;
@@ -88,10 +96,13 @@ export function createHostSession({
     return refuse(conn, 'full');
   };
 
-  const commit = (events) => {
+  // H22 : `by` = participant auteur, ajouté sur une copie des événements du moteur.
+  const commit = (events, by, ack) => {
+    const tagged = events.map((e) => ({ ...e, by }));
     rev++;
-    sendState(events);
-    changes.emit(viewFor(state, 0), events);
+    sendState(tagged, ack);
+    changes.emit(viewFor(state, 0), tagged);
+    return tagged;
   };
 
   const onMessage = (conn, msg) => {
@@ -102,10 +113,12 @@ export function createHostSession({
     if (msg.t === 'ping') conn.transport.send(makePong(msg.ts));
     else if (msg.t === 'resync') sendState();
     else if (msg.t === 'action') {
-      const r = applyAction(state, 1, msg.action, dict);
+      // D10/H15 : action composée sur une révision périmée → rejet sans effet.
+      if (msg.rev !== rev) { conn.transport.send(makeReject(msg.seq, 'stale')); return; }
+      const r = applyAction(state, seatOf(1), msg.action, dict);
       if (!r.ok) { conn.transport.send(makeReject(msg.seq, r.error)); return; }
       state = r.state;
-      commit(r.events);
+      commit(r.events, 1, msg.seq);
     }
   };
 
@@ -124,11 +137,10 @@ export function createHostSession({
       return conn;
     },
     act(action) {
-      const r = applyAction(state, 0, action, dict);
+      const r = applyAction(state, seatOf(0), action, dict);
       if (!r.ok) return { ok: false, error: r.error };
       state = r.state;
-      commit(r.events);
-      return { ok: true, events: r.events };
+      return { ok: true, events: commit(r.events, 0) };
     },
     /** `nextSettings` (optionnel) change les réglages de la nouvelle partie (« Changer de niveau », LU-12). */
     rematch(nextSettings) {
@@ -145,8 +157,9 @@ export function createHostSession({
     },
     restore(snap) {
       if (!snap || snap.v !== 1) throw new Error('restore: instantané invalide');
+      if (snap.state?.v !== engineModule.STATE_VERSION) throw new Error('restore: version d’état incompatible (H18)');
       state = structuredClone(snap.state);
-      rev = snap.rev;
+      rev = Math.max(rev + 1, snap.rev); // A22
       settings = structuredClone(snap.settings);
       if (!guest && snap.guestClientId) {
         guest = { clientId: snap.guestClientId, conn: null, lastSeen: clock.now() };
@@ -178,6 +191,7 @@ export function createGuestSession({
   let view = null;
   let settings = null;
   let seq = 0;
+  let rev = 0; // révision du dernier state reçu (D10)
   let attempts = 0;
   let conn = null; // { transport, alive }
   let lastSeen = clock.now();
@@ -236,7 +250,8 @@ export function createGuestSession({
         break;
       case 'state':
         view = msg.view;
-        changes.emit(view, msg.events);
+        rev = msg.rev;
+        changes.emit(view, msg.events, { ack: msg.ack });
         break;
       case 'reject': rejects.emit(msg.error, msg.seq); break;
       case 'new-game': settings = msg.settings; newGames.emit(msg.settings); break;
@@ -276,7 +291,7 @@ export function createGuestSession({
     act(action) {
       if (status !== 'open') return null;
       const n = seq++;
-      conn.transport.send(makeAction(n, action));
+      conn.transport.send(makeAction(n, rev, action));
       return n;
     },
     resync() { if (status === 'open') conn.transport.send(makeResync()); },

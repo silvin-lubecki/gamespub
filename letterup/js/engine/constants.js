@@ -6,6 +6,9 @@ export const RACK_SIZE = 6;
 export const MAX_STACK = 3;
 export const JOKER = '*';
 
+// Version de l'état de partie (H18) : v2 = coop à siège unique (H12′).
+export const STATE_VERSION = 2;
+
 // 60 tuiles au total (vérifié par test).
 export const DISTRIBUTION = Object.freeze({
   A: 8, B: 1, C: 2, D: 1, E: 8, F: 1, G: 1, H: 1, I: 5, J: 1, K: 1, L: 2, M: 2,

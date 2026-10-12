@@ -100,6 +100,6 @@ export function computePreview(view, you, pending, dict) {
     error: r.error ?? null,
     words,
     slots: r.ok ? gainedSlots(view, r.words) : [],
-    message: r.ok ? null : errorMessage(r.error, { words: r.words, orientation: r.orientation }),
+    message: r.ok ? null : errorMessage(r.error, { words: r.words, orientation: r.orientation, mode: view.mode }),
   };
 }

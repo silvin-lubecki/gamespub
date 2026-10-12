@@ -1,15 +1,17 @@
 // Coquille PWA (LU-07), hot-seat de développement (LU-10), parcours multijoueur P2P (LU-11).
 // Parcours coopératif (LU-12) : choix niveau/motif (home-screen.js), réglages transmis à la session hôte (H2).
+// Coop solo (LU-17) : partie locale sans réseau ni salon, reprise via solo-save.js (H17, H21).
 import { VERSION } from './version.js';
 import { createLocalController, createNetworkController, getClientId, loadDictionary, randomSeed } from './ui/controller.js';
 import { createGameScreen } from './ui/game-screen.js';
 import { renderHome, renderCoopPicker } from './ui/home-screen.js';
 import { renderConnecting, renderError, renderLobby, inviteLink } from './ui/lobby-screen.js';
 import { renderEnd } from './ui/end-screen.js';
-import { createStatusBar, guestFailure, STATUS_CONNECTING } from './ui/status.js';
-import { networkNames } from './ui/messages.js';
+import { createStatusBar, guestFailure, STATUS_CONNECTING, STATUS_SOLO } from './ui/status.js';
+import { COOP_NAMES, coopNetworkNames, networkNames } from './ui/messages.js';
 import { actionToast, confirmDialog, toast } from './ui/dialogs.js';
 import { clearHost, loadHost, persistHost } from './ui/host-save.js';
+import { clearSolo, loadSolo, persistSolo } from './ui/solo-save.js';
 import { renderRules } from './ui/rules-screen.js';
 import { createGuestSession, createHostSession } from './net/session.js';
 import { connectPeerGuest, openPeerHost, HOST_RETRY_MAX } from './net/transport-peer.js';
@@ -61,22 +63,30 @@ function openRules() {
   rules.scrollIntoView?.({ behavior: reducedMotion() ? 'auto' : 'smooth' });
 }
 
-async function abandonSaved() {
+async function abandonSaved(clear) {
   if (!(await confirmDialog({ message: 'Abandonner la partie en cours ?', confirmLabel: 'Abandonner' }))) return;
-  clearHost();
+  clear();
   showHome();
 }
 
 function showHome() {
   let saved = loadHost(); // A18 : on ne propose la reprise que si le transport sauvegardé est celui de l'URL
   if (saved && saved.local !== local) saved = null;
+  const savedSolo = loadSolo();
   show('screen-home');
   renderHome($('screen-home'), {
     version: VERSION,
     onVersus: () => startHost({ mode: 'versus', coop: null }),
-    onCoop: () => renderCoopPicker($('screen-home'), { onConfirm: (coop) => startHost({ mode: 'coop', coop }), onBack: showHome }),
+    onCoop: () => renderCoopPicker($('screen-home'), {
+      onConfirm: (coop, { solo = false } = {}) => (solo ? startSolo({ coop }) : startHost({ mode: 'coop', coop })),
+      onBack: showHome,
+    }),
     onRules: openRules,
-    resume: saved && { onResume: () => resumeHost(saved), onAbandon: abandonSaved },
+    resume: saved && { onResume: () => resumeHost(saved), onAbandon: () => abandonSaved(clearHost) },
+    resumeSolo: savedSolo && {
+      onResume: () => startSolo({ coop: savedSolo.settings.coop, initialState: savedSolo.state }),
+      onAbandon: () => abandonSaved(clearSolo),
+    },
   });
 }
 
@@ -115,8 +125,9 @@ async function startHotseat() {
       dict,
       coop: { level: params.get('level') ?? 'easy', motif: params.get('motif') ?? 'F' },
     });
+    const coopGame = controller.getView().mode === 'coop';
     show('screen-game');
-    createGameScreen($('screen-game'), { controller, dict, hotseat: true });
+    createGameScreen($('screen-game'), { controller, dict, hotseat: true, ...(coopGame && { names: COOP_NAMES }) });
     controller.onChange((view) => {
       if (view.mode === 'coop' && view.status === 'ended') { // l'écran de score coop est partagé ; le hot-seat versus reste sans écran de fin
         renderEnd($('screen-end'), { view, you: controller.you, role: 'host', canChangeLevel: false, onRematch: () => location.reload(), onHome: goHome });
@@ -126,6 +137,47 @@ async function startHotseat() {
   } catch (err) {
     status.textContent = `Partie impossible : ${err.message}`;
   }
+}
+
+let soloScreen = null;
+let stopSolo = null;
+
+/**
+ * Coop solo (LU-17, H17) : contrôleur local, aucun réseau ni salon ; sauvegarde `letterup:solo` à chaque coup.
+ * `initialState` : reprise après rechargement ; « Rejouer » relance une partie neuve (sans empiler d'écouteurs).
+ */
+async function startSolo({ coop, seed = devSeed(), initialState = null }) {
+  const status = $('status');
+  const dict = await withDictionary(status);
+  if (!dict) return;
+  soloScreen?.destroy();
+  soloScreen = null;
+  stopSolo?.();
+  stopSolo = null;
+  let ctrl;
+  try {
+    ctrl = createLocalController({ mode: 'coop', seed, dict, coop, initialState });
+    createStatusBar(status).clear();
+    status.textContent = STATUS_SOLO;
+    $('screen-end').hidden = true;
+    show('screen-game');
+    soloScreen = createGameScreen($('screen-game'), { controller: ctrl, dict, names: COOP_NAMES, solo: true, turnStatusLine: false });
+  } catch (err) { // sauvegarde illisible ou réglages invalides : on l'efface et on revient à l'accueil
+    console.warn('Partie solo impossible :', err);
+    clearSolo();
+    toast('Partie solo impossible : sauvegarde illisible, elle a été abandonnée.');
+    showHome();
+    return;
+  }
+  stopSolo = persistSolo(ctrl, { mode: 'coop', coop });
+  ctrl.onChange((view) => {
+    if (view.status !== 'ended') return;
+    renderEnd($('screen-end'), {
+      view, you: 0, role: 'host', onHome: goHome,
+      onRematch: (next) => startSolo({ coop: next?.coop ?? coop, seed: randomSeed() }),
+    });
+    $('screen-end').scrollIntoView?.({ behavior: reducedMotion() ? 'auto' : 'smooth' });
+  });
 }
 
 /** Écran Partie réseau + barre de statut + écran de fin, communs à l'hôte et à l'invité. */
@@ -142,7 +194,7 @@ function startGame(ctrl, dict) {
     }
   };
   show('screen-game');
-  createGameScreen($('screen-game'), { controller: ctrl, dict, names: networkNames(ctrl.you), turnStatusLine: false });
+  createGameScreen($('screen-game'), { controller: ctrl, dict, names: ctrl.getView().mode === 'coop' ? coopNetworkNames(ctrl.participant) : networkNames(ctrl.you), turnStatusLine: false });
   ctrl.onChange(onChange);
   ctrl.onStatus(refresh);
   onChange(ctrl.getView());

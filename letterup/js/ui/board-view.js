@@ -1,5 +1,5 @@
 // Rendu du plateau (LU-09, DESIGN.md §10.3-10.4, §5.2).
-// Hypothèses utilisées : H1 (motifs et disposition originaux), H2 (mottes sur le motif coop),
+// Hypothèses utilisées : H1 (motifs et disposition originaux), H2 (cases noircies sur le motif coop), H19 (coop : troncs),
 // H3 (28 emplacements de bord T/B/L/R 0..6). Module pur à l'import : aucun accès à `document` hors de renderBoard.
 import { CELLS, EDGE_SLOTS, colOf, rowOf } from '../engine/constants.js';
 import { LAYOUT, MOTIFS } from '../engine/layout.js';
@@ -51,7 +51,7 @@ function highlightClass(highlight, key, id) {
  *  - selectable : tableau ou Set de cases.
  */
 export function boardModel(viewOrState, { pending = [], highlight = {}, selectable = [] } = {}) {
-  const { board, locked = [], mottes = [], edges = {} } = viewOrState;
+  const { board, locked = [], mottes = [], edges = {}, mode = 'versus' } = viewOrState;
   const pendingByCell = new Map(pending.map((p) => [p.cell, p]));
   const selectableSet = new Set(selectable);
   const motteSet = new Set(mottes);
@@ -85,6 +85,7 @@ export function boardModel(viewOrState, { pending = [], highlight = {}, selectab
       ...slotPosition(slot),
       owner: e ? e.owner : null,
       pawn: e ? pawnColor(e.owner) : null,
+      trunk: Boolean(e) && mode === 'coop',
       permanent: Boolean(e?.permanent),
       tree: Boolean(e?.tree),
       highlight: highlightClass(highlight, 'slots', slot),
@@ -113,7 +114,7 @@ function el(tag, className, text) {
 
 function cellLabel(c) {
   const parts = [`Rangée ${c.row}, colonne ${c.col}`, c.name];
-  if (c.motte) parts.push('motte');
+  if (c.motte) parts.push('case noircie');
   if (c.locked) parts.push('verrouillée');
   if (c.selectable) parts.push('sélectionnable');
   if (c.pending) parts.push(`pose provisoire ${c.pending.letter}`);
@@ -130,7 +131,7 @@ function renderCell(c, spriteHref) {
   node.setAttribute('role', 'img');
   node.setAttribute('aria-label', cellLabel(c));
   const motifId = c.motif === '*' ? 'motif-sun' : `motif-${c.motif}`;
-  node.append(svgUse(spriteHref, motifId, 'motif'));
+  if (!c.motte) node.append(svgUse(spriteHref, motifId, 'motif'));
   if (c.locked) node.classList.add('is-locked');
   if (c.selectable) node.classList.add('is-selectable');
   if (c.highlight) node.classList.add(`is-${c.highlight === 'on' ? 'highlight' : c.highlight}`);
@@ -165,10 +166,12 @@ function renderSlot(s, spriteHref) {
   if (s.pawn) {
     node.classList.add(`pawn-${s.pawn}`);
     if (s.permanent) node.classList.add('is-permanent');
-    node.append(svgUse(spriteHref, 'pawn', 'pawn'));
+    if (s.trunk) node.classList.add('is-tronc');
+    node.append(svgUse(spriteHref, s.trunk ? 'tronc' : 'pawn', s.trunk ? 'tronc' : 'pawn'));
     if (s.tree) node.append(svgUse(spriteHref, 'tree', 'tree'));
     node.setAttribute('role', 'img');
-    node.setAttribute('aria-label', `Emplacement ${s.slot}, pion ${s.pawn === 'green' ? 'vert' : 'marron'}${s.tree ? ', arbre' : ''}`);
+    const what = s.trunk ? 'tronc' : `pion ${s.pawn === 'green' ? 'vert' : 'marron'}`;
+    node.setAttribute('aria-label', `Emplacement ${s.slot}, ${what}${s.tree ? ', arbre' : ''}`);
   } else {
     node.classList.add('is-empty');
     node.setAttribute('role', 'img');

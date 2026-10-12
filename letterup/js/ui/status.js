@@ -1,11 +1,14 @@
 // Barre de statut réseau et messages d'échec de l'invité (LU-11, DESIGN.md §10.1). Aucun accès au DOM à l'import.
 // Hypothèses LU-11 : A11 partie terminée et connexion ouverte → « 🟢 Connecté » ; A12 `peer-unavailable` n'est fatal
 // qu'avant la première connexion (ensuite l'invité continue de se reconnecter).
+// LU-18 : en coop il n'y a pas de tour (H12′, H15) : « Partie en équipe » remplace « À votre tour » / « Tour de l'adversaire ».
 import { peerErrorMessage } from '../net/transport-peer.js';
 
 export const STATUS_WAITING = '🟡 En attente du joueur 2...';
 export const STATUS_MY_TURN = '🟢 Connecté - À votre tour';
 export const STATUS_THEIR_TURN = "🟢 Connecté - Tour de l'adversaire";
+export const STATUS_TEAM = '🟢 Connecté - Partie en équipe';
+export const STATUS_SOLO = 'Partie solo'; // LU-17 : partie locale, aucun réseau (H17)
 export const STATUS_LOST = '🔴 Connexion perdue';
 export const STATUS_CONNECTING = 'Connexion à l’hôte…';
 export const STATUS_ENDED = '🟢 Connecté';
@@ -17,6 +20,7 @@ export function connectionStatus({ role, status, view = null, you = 0 }) {
   if (status === 'connecting') return { text: STATUS_CONNECTING, detail: '', tone: 'waiting' };
   if (status === 'open') {
     if (!view || view.status !== 'playing') return { text: STATUS_ENDED, detail: '', tone: 'ok' };
+    if (view.mode === 'coop') return { text: STATUS_TEAM, detail: '', tone: 'ok' };
     return { text: view.current === you ? STATUS_MY_TURN : STATUS_THEIR_TURN, detail: '', tone: 'ok' };
   }
   if (status === 'lost') return { text: STATUS_LOST, detail: role === 'guest' ? RECONNECTING : '', tone: 'lost' };

@@ -1,17 +1,19 @@
 // Contrôleur de partie (LU-10) : interface consommée par l'UI, indépendante du transport.
-//   { you, getView(), act(action) → Promise<{ok, error?}>, onChange(cb), }
-// `onChange` appelle `cb(view, events)` après chaque action acceptée. LU-11 fournira la même interface
+//   { you, participant, getView(), act(action) → Promise<{ok, error?}>, onChange(cb), }
+// `onChange` appelle `cb(view, events, meta)` après chaque action acceptée (`meta.ack` : réseau invité, LU-16). LU-11 fournira la même interface
 // via le réseau ; ici, implémentation locale (moteur en mémoire) pour le hot-seat de développement.
 import { applyAction, createDictionary, createGame, viewFor } from '../engine/index.js';
 import { createClientId } from '../net/session.js';
 
 /** Hot-seat : `you` suit le joueur courant (deux joueurs sur le même écran). */
-export function createLocalController({ mode = 'versus', seed, dict, coop } = {}) {
-  let state = createGame({ mode, seed, coop });
+export function createLocalController({ mode = 'versus', seed, dict, coop, initialState = null } = {}) {
+  let state = initialState ?? createGame({ mode, seed, coop }); // `initialState` : reprise solo (LU-17, H17)
   const listeners = new Set();
   const getView = () => viewFor(state, state.current);
   return {
     get you() { return state.current; },
+    get state() { return state; },
+    participant: 0, // coop : un seul siège (H12′), le hot-seat coop est de fait un solo
     getView,
     async act(action) {
       const r = applyAction(state, state.current, action, dict);
@@ -69,10 +71,14 @@ export function createNetworkController(session) {
   if (isHost || session.view) resolveReady(session.view);
 
   const changeCbs = new Set();
-  session.onChange((view, events) => {
+  session.onChange((view, events, meta = {}) => {
     resolveReady(view);
-    if (!isHost) settle({ ok: true }); // transport FIFO : un rejet éventuel est arrivé avant ce state
-    for (const cb of [...changeCbs]) cb(view, events);
+    // A10′ : `act` de l'invité ne se résout que sur le state dont `ack` = son seq (un coup de l'hôte ne résout rien).
+    if (!isHost && meta.ack !== undefined) {
+      const resolve = pending.get(meta.ack);
+      if (resolve) { pending.delete(meta.ack); resolve({ ok: true }); }
+    }
+    for (const cb of [...changeCbs]) cb(view, events, meta);
   });
   if (!isHost) {
     session.onReject((error, seq) => {
@@ -83,7 +89,9 @@ export function createNetworkController(session) {
   session.onStatus((s) => { if (!isHost && s !== 'open' && s !== 'connecting') settle({ ok: false, error: 'offline' }); });
 
   return {
-    you: isHost ? 0 : 1,
+    // `you` = siège de la vue (en coop : toujours 0, H12′) ; `participant` = 0 hôte, 1 invité.
+    get you() { return session.view?.you ?? (isHost ? 0 : 1); },
+    participant: isHost ? 0 : 1,
     role: isHost ? 'host' : 'guest',
     ready,
     getView: () => session.view,

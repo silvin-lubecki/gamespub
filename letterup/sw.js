@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'letterup-0.0.1';
+const CACHE_VERSION = 'letterup-0.0.2';
 const PRECACHE = [
   './',
   './index.html',
@@ -37,6 +37,7 @@ const PRECACHE = [
   './js/ui/messages.js',
   './js/ui/rack-view.js',
   './js/ui/rules-screen.js',
+  './js/ui/solo-save.js',
   './js/ui/status.js',
   './js/ui/turn-state.js',
   './dict/fr.txt',

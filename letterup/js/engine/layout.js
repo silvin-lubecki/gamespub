@@ -21,7 +21,7 @@ export const MOTIFS = {
   E: { name: 'Étoile', color: '#f2c230', level: 'hard' },
   S: { name: 'Escargot', color: '#9b6bb5', level: 'hard' },
   V: { name: 'Vague', color: '#3fb5a8' },
-  M: { name: 'Montagne', color: '#8d7b68' },
+  M: { name: 'Montagne', color: '#7682d2' },
   N: { name: 'Nuage', color: '#a9c6d9' },
   '*': { name: 'Soleil', color: '#f39c12' },
 };

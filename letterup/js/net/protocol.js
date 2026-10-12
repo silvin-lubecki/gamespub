@@ -1,7 +1,7 @@
-// Protocole JSON v1 (DESIGN.md §9.2). H2 (motifs coop par niveau) : valide les réglages coop.
+// Protocole JSON v2 (DESIGN.md §9.2) : `rev` dans `action`, `ack` dans `state` (LU-16, D10–D12). H2 (motifs coop par niveau) : valide les réglages coop.
 import { COOP_MOTIFS } from '../engine/layout.js';
 // Hypothèse réseau A2 : parseMessage renvoie une copie normalisée (champs connus uniquement).
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 export const MESSAGE_TYPES = ['hello', 'welcome', 'refused', 'state', 'action', 'reject', 'ping', 'pong', 'new-game', 'resync'];
 export const REFUSED_REASONS = ['version', 'full'];
 export const ACTION_TYPES = ['play', 'renew', 'pass'];
@@ -13,8 +13,11 @@ const settingsPayload = (s) => ({
 });
 export const makeWelcome = (settings) => ({ t: 'welcome', v: PROTOCOL_VERSION, you: 1, settings: settingsPayload(settings) });
 export const makeRefused = (reason) => ({ t: 'refused', reason });
-export const makeState = (rev, view, events = []) => ({ t: 'state', rev, view, events });
-export const makeAction = (seq, action) => ({ t: 'action', seq, action });
+// `ack` (optionnel) : seq de l'action de l'invité dont ce state est le résultat ; clé absente sinon.
+export const makeState = (rev, view, events = [], ack) => (
+  ack === undefined ? { t: 'state', rev, view, events } : { t: 'state', rev, view, events, ack });
+// `rev` (obligatoire) : révision du dernier state reçu, sur lequel l'action a été composée (H15).
+export const makeAction = (seq, rev, action) => ({ t: 'action', seq, rev, action });
 export const makeReject = (seq, error) => ({ t: 'reject', seq, error });
 export const makePing = (ts) => ({ t: 'ping', ts });
 export const makePong = (ts) => ({ t: 'pong', ts });
@@ -65,10 +68,13 @@ function parseBody(m) {
     case 'state':
       if (!isInt(m.rev) || !isObject(m.view)) return null;
       if (!Array.isArray(m.events) || !m.events.every((e) => isObject(e) && typeof e.type === 'string')) return null;
-      return { t: 'state', rev: m.rev, view: m.view, events: m.events };
+      if (m.ack !== undefined && !isInt(m.ack)) return null;
+      return m.ack === undefined
+        ? { t: 'state', rev: m.rev, view: m.view, events: m.events }
+        : { t: 'state', rev: m.rev, view: m.view, events: m.events, ack: m.ack };
     case 'action': {
       const action = parseAction(m.action);
-      return isInt(m.seq) && action ? { t: 'action', seq: m.seq, action } : null;
+      return isInt(m.seq) && isInt(m.rev) && action ? { t: 'action', seq: m.seq, rev: m.rev, action } : null;
     }
     case 'reject':
       return isInt(m.seq) && isStr(m.error) ? { t: 'reject', seq: m.seq, error: m.error } : null;
