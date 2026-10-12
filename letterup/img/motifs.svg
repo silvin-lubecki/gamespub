@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Letter Up : sprite de motifs, illustrations originales (H1 : plateau et motifs originaux, aucun visuel du jeu d'origine).
+     Style : aplats, formes arrondies, contour marron #4a2c17, remplissage crème #fbf3dc. Lisibles à 40 px. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <defs>
+    <symbol id="motif-sun" viewBox="0 0 40 40">
+      <g stroke="#4a2c17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <g fill="none" stroke-width="3">
+          <path d="M20 3v5M20 32v5M3 20h5M32 20h5M8 8l3.5 3.5M28.5 28.5L32 32M32 8l-3.5 3.5M11.5 28.5L8 32"/>
+        </g>
+        <circle cx="20" cy="20" r="9" fill="#fbf3dc"/>
+        <circle cx="20" cy="20" r="4" fill="#f2c230" stroke="none"/>
+      </g>
+    </symbol>
+    <symbol id="motif-F" viewBox="0 0 40 40">
+      <g stroke="#4a2c17" stroke-width="2" stroke-linejoin="round" fill="#fbf3dc">
+        <circle cx="20" cy="9.5" r="6.5"/>
+        <circle cx="30" cy="16.5" r="6.5"/>
+        <circle cx="26.2" cy="28.5" r="6.5"/>
+        <circle cx="13.8" cy="28.5" r="6.5"/>
+        <circle cx="10" cy="16.5" r="6.5"/>
+        <circle cx="20" cy="20" r="5.5" fill="#f2c230"/>
+      </g>
+    </symbol>
+    <symbol id="motif-C" viewBox="0 0 40 40">
+      <g stroke="#4a2c17" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M14 22h12l1.5 12a2 2 0 0 1-2 2.2h-11a2 2 0 0 1-2-2.2z" fill="#fbf3dc"/>
+        <path d="M4.5 22C4.5 11 11.5 4.5 20 4.5S35.5 11 35.5 22z" fill="#fbf3dc"/>
+        <g fill="#4a2c17" stroke="none">
+          <circle cx="14" cy="15" r="2.6"/><circle cx="24" cy="11.5" r="2.2"/><circle cx="28.5" cy="18" r="1.9"/>
+        </g>
+      </g>
+    </symbol>
+    <symbol id="motif-L" viewBox="0 0 40 40">
+      <g stroke="#4a2c17" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M6 34C4 18 12 6 34 5c1 20-7 31-24 30z" fill="#fbf3dc"/>
+        <path d="M6 34L26 14" fill="none"/>
+      </g>
+    </symbol>
+    <symbol id="motif-G" viewBox="0 0 40 40">
+      <g stroke="#4a2c17" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M20 4C20 4 8 18 8 26a12 12 0 0 0 24 0C32 18 20 4 20 4z" fill="#fbf3dc"/>
+        <path d="M14 27a6 6 0 0 0 5 5" fill="none"/>
+      </g>
+    </symbol>
+    <symbol id="motif-E" viewBox="0 0 40 40">
+      <path d="M20 4l4.9 10.4 11.3 1.4-8.3 7.8 2.1 11.2L20 29.2 10 34.8l2.1-11.2-8.3-7.8 11.3-1.4z"
+            fill="#fbf3dc" stroke="#4a2c17" stroke-width="2" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="motif-S" viewBox="0 0 40 40">
+      <g stroke="#4a2c17" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M3 33h27a7 7 0 0 0 7-7v-1" fill="#fbf3dc"/>
+        <path d="M37 25c0-3-2-5-4-6M37 25l2-4" fill="none"/>
+        <circle cx="19" cy="20" r="11.5" fill="#fbf3dc"/>
+        <path d="M19 20m0 0a2 2 0 1 1 3 1.5a5 5 0 1 1-6-6a8 8 0 1 1-4 11" fill="none"/>
+      </g>
+    </symbol>
+    <symbol id="motif-V" viewBox="0 0 40 40">
+      <g fill="none" stroke="#fbf3dc" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 13q4-6 8 0t8 0 8 0 8 0"/>
+        <path d="M4 27q4-6 8 0t8 0 8 0 8 0"/>
+      </g>
+      <g fill="none" stroke="#4a2c17" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55">
+        <path d="M4 19q4-6 8 0t8 0 8 0 8 0"/>
+      </g>
+    </symbol>
+    <symbol id="motif-M" viewBox="0 0 40 40">
+      <g stroke="#4a2c17" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M2.5 33L15 9l12.5 24z" fill="#fbf3dc"/>
+        <path d="M20 33L28.5 17 37.5 33z" fill="#fbf3dc"/>
+        <path d="M11.5 15.5L15 20l3-3" fill="none"/>
+      </g>
+    </symbol>
+    <symbol id="motif-N" viewBox="0 0 40 40">
+      <path d="M11 31a7 7 0 0 1-.5-14A9 9 0 0 1 28 14.5a8 8 0 0 1 2 16.5z"
+            fill="#fbf3dc" stroke="#4a2c17" stroke-width="2" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Pion : disque coloré par `color` (vert / marron) sur le <use>. -->
+    <symbol id="pawn" viewBox="0 0 40 40">
+      <circle cx="20" cy="20" r="15" fill="currentColor" stroke="#fbf3dc" stroke-width="3"/>
+      <circle cx="20" cy="20" r="15" fill="none" stroke="#4a2c17" stroke-width="1.5" opacity="0.6"/>
+      <ellipse cx="15" cy="14.5" rx="5" ry="3" fill="#fbf3dc" opacity="0.35" transform="rotate(-30 15 14.5)"/>
+    </symbol>
+    <!-- Arbre : sapin stylisé posé sur le pion. -->
+    <symbol id="tree" viewBox="0 0 40 40">
+      <g stroke="#4a2c17" stroke-width="1.8" stroke-linejoin="round">
+        <rect x="17" y="30" width="6" height="8" rx="1.5" fill="#7a4a25"/>
+        <path d="M20 2l9 12h-5l8 10H8l8-10h-5z" fill="#2f7a3a"/>
+        <path d="M20 14l8 10H12z" fill="#3f8f3a" stroke="none"/>
+        <path d="M8 24h24l3 7H5z" fill="#2f7a3a"/>
+      </g>
+    </symbol>
+    <!-- Motte : carré d'herbe en relief (coop, H2). -->
+    <symbol id="motte" viewBox="0 0 40 40">
+      <rect x="3" y="5" width="34" height="33" rx="7" fill="#3f6f2a"/>
+      <rect x="3" y="3" width="34" height="32" rx="7" fill="#6aa84f" stroke="#4a2c17" stroke-width="1.5"/>
+      <path d="M8 12q2-5 4 0M17 9q2-5 4 0M26 13q2-5 4 0M11 24q2-5 4 0M23 26q2-5 4 0" fill="none"
+            stroke="#a8d58a" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
