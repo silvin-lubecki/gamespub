@@ -28,3 +28,10 @@ export const EDGE_SLOTS = [...'TBLR'].flatMap((side) =>
 export const cellOf = (r, c) => r * SIZE + c;
 export const rowOf = (cell) => Math.floor(cell / SIZE);
 export const colOf = (cell) => cell % SIZE;
+
+/** H23 : case `cell` après `quarterTurns` quarts de tour horaires (négatif = antihoraire) : (r, c) → (c, 6 − r) par quart. */
+export function rotateCell(cell, quarterTurns) {
+  let r = rowOf(cell), c = colOf(cell);
+  for (let k = ((quarterTurns % 4) + 4) % 4; k > 0; k--) [r, c] = [c, SIZE - 1 - r];
+  return cellOf(r, c);
+}

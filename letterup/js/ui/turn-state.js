@@ -1,6 +1,6 @@
 // État local d'un tour (LU-10) : poses provisoires, sélection, renouvellement, prévisualisation. Module pur (sans DOM).
 // Hypothèses utilisées : H3 et H8 (emplacements de bord gagnés/repris par un mot d'au moins 2 lettres, surlignés en prévisualisation).
-import { JOKER, MAX_STACK, edgeSlotsTouched, placeTiles, validatePlay, wordsFormed } from '../engine/index.js';
+import { JOKER, MAX_STACK, edgeSlotsTouched, isBoardEmpty, placeTiles, validatePlay, wordsFormed } from '../engine/index.js';
 import { errorMessage } from './messages.js';
 
 /** `pending` : [{ cell, rackIndex, letter }] ; `selected` : rackIndex | null ; `renew` : null | rackIndex[]. */
@@ -45,6 +45,14 @@ export function reduceTurn(s, a) {
     default:
       return s;
   }
+}
+
+/** H23 : vrai si le changement ne vient que de rotations (sinon, p. ex. rematch ou reprise sans événement : tout est réinitialisé). */
+export const isRotationOnly = (events) => events.length > 0 && events.every((e) => e.type === 'rotated');
+
+/** H23 : flèches de rotation visibles tant que le plateau est vide ; désactivées hors tour, en cours d'envoi ou de renouvellement. */
+export function rotateControls(view, { myTurn, busy = false, renew = null } = {}) {
+  return { visible: view.status === 'playing' && isBoardEmpty(view.board), disabled: !myTurn || busy || Boolean(renew) };
 }
 
 /** Code d'erreur (messages.js) expliquant un dépôt refusé d'emblée sur `cell`, ou `null` (motte : H2). */
@@ -100,6 +108,6 @@ export function computePreview(view, you, pending, dict) {
     error: r.error ?? null,
     words,
     slots: r.ok ? gainedSlots(view, r.words) : [],
-    message: r.ok ? null : errorMessage(r.error, { words: r.words, orientation: r.orientation, mode: view.mode }),
+    message: r.ok ? null : errorMessage(r.error, { words: r.words, mode: view.mode }),
   };
 }

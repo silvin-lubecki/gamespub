@@ -4,7 +4,7 @@ export { createDictionary, normalizeWord } from './dictionary.js';
 export * from './constants.js';
 export { next, shuffle, seedState } from './rng.js';
 export { createBag, draw, returnTiles } from './bag.js';
-export { LAYOUT, MOTIFS, COOP_MOTIFS, motteCells } from './layout.js';
+export { LAYOUT, MOTIFS, COOP_MOTIFS, motteCells, layoutAt } from './layout.js';
 export { createGame, drawFirstPlayer, isUnbalancedRack, applyAction, viewFor } from './game.js';
 export { top, height, isEmpty, isBoardEmpty, neighbors, lineCells, sequenceAt } from './board.js';
 export { wordsFormed } from './words.js';

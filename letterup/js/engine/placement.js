@@ -1,7 +1,8 @@
 // Validation d'un coup « JOUER UN MOT » (DESIGN.md §5.3, §6.3). Pure : ne mute rien et ne lit que des champs
-// publics (status, current, players[i].rack, board, locked, mottes, orientation).
+// publics (status, current, players[i].rack, board, locked, mottes).
 // H6 : le premier coup exige au moins 2 tuiles et couvre le Soleil. H7 : un mot principal d'une lettre n'est
-// vérifié (au dictionnaire) que s'il est le seul mot formé par la pose.
+// vérifié (au dictionnaire) que s'il est le seul mot formé par la pose. H23 : aucun sens n'est imposé après le premier
+// coup ; chaque coup tient sur une ligne et son sens est celui de cette ligne (une tuile seule : voir ci-dessous).
 import { CELLS, CENTER, RACK_SIZE, MAX_STACK, JOKER, rowOf, colOf } from './constants.js';
 import { top, height, isBoardEmpty, neighbors, sequenceAt } from './board.js';
 import { wordsFormed } from './words.js';
@@ -16,7 +17,7 @@ export function placeTiles(board, rack, placements) {
 }
 
 export function validatePlay(view, player, placements, dict) {
-  const fail = (error, orientation = view.orientation ?? null, words = []) =>
+  const fail = (error, orientation = null, words = []) =>
     ({ ok: false, words, orientation, error });
   const { board } = view;
 
@@ -48,22 +49,23 @@ export function validatePlay(view, player, placements, dict) {
     if (top(board, cell)?.l === letter) return fail('same-letter');
   }
 
-  // 3. Alignement et orientation.
+  // 3. Alignement et sens du coup (H23).
   const sameRow = placements.every((p) => rowOf(p.cell) === rowOf(placements[0].cell));
   const sameCol = placements.every((p) => colOf(p.cell) === colOf(placements[0].cell));
   if (!sameRow && !sameCol) return fail('not-aligned');
   const first = isBoardEmpty(board);
+  if (first && placements.length < 2) return fail('first-too-short');
+  const after = placeTiles(board, rack, placements);
   let orientation;
-  if (first) {
-    if (placements.length < 2) return fail('first-too-short');
+  if (placements.length >= 2) {
     orientation = sameRow ? 'H' : 'V';
   } else {
-    orientation = view.orientation;
-    if (placements.length >= 2 && (sameRow ? 'H' : 'V') !== orientation) return fail('wrong-orientation', orientation);
+    // H23 : tuile seule, sens libre ; on lit le mot principal en H sauf si seul le sens V forme un mot (≥ 2 lettres).
+    const cell = placements[0].cell;
+    orientation = sequenceAt(after, cell, 'H').length >= 2 || sequenceAt(after, cell, 'V').length < 2 ? 'H' : 'V';
   }
 
   // 4. Mot principal unique, sans trou.
-  const after = placeTiles(board, rack, placements);
   const main = sequenceAt(after, placements[0].cell, orientation);
   if (placements.some((p) => !main.includes(p.cell))) return fail('gap', orientation);
 
