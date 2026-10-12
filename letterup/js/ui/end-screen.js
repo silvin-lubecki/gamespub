@@ -1,8 +1,9 @@
 // Écran de fin de partie (LU-11 compétitif, LU-12 coopératif ; DESIGN.md §7, §10.1 écran 5). Aucun accès au DOM à l'import.
-// Hypothèses utilisées : H3 (6 territoires), H9 (fin par sac épuisé), H10 (fins coop « max » et « stuck »),
-// H11 (arbres), H12 (score commun).
-import { COOP_MAX_SCORE, PAWNS, STAR_TIERS } from '../engine/index.js';
+// Hypothèses utilisées : H3 (6 territoires), H9 (fin par sac épuisé), H10′ (fins coop « max » et « stuck »),
+// H11 (arbres), H12′ (score commun), H19 (vocabulaire coop : troncs, arbres, mot traversant).
+import { COOP_MAX_SCORE, STAR_TIERS } from '../engine/index.js';
 import { renderCoopPicker } from './home-screen.js';
+import { coopCountsText } from './messages.js';
 
 const plural = (n) => `${n} territoire${n > 1 ? 's' : ''}`;
 
@@ -14,7 +15,7 @@ export function coopEndSummary(view) {
   return {
     title: result.stars > 0 ? 'Bravo !' : 'Perdu',
     reason: COOP_REASONS[result.reason] ?? '',
-    counts: `Territoires : ${coop.territories}/${PAWNS.coopBrown} — Arbres : ${coop.trees}/${PAWNS.coopTrees} — Traverses : ${coop.traverses}`,
+    counts: coopCountsText(coop),
     score: `Score : ${result.score}/${COOP_MAX_SCORE}`,
     stars: result.stars,
   };
@@ -68,6 +69,7 @@ export function renderEnd(root, { view, you, role, onRematch, onHome, canChangeL
       const change = el('button', 'btn secondary', 'Changer de niveau');
       change.type = 'button';
       change.addEventListener('click', () => renderCoopPicker(root, {
+        confirmLabel: 'Rejouer',
         onConfirm: (choice) => onRematch({ mode: 'coop', coop: choice }),
         onBack: () => renderEnd(root, { view, you, role, onRematch, onHome, canChangeLevel }),
       }));

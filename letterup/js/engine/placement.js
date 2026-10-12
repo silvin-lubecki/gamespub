@@ -1,7 +1,7 @@
 // Validation d'un coup « JOUER UN MOT » (DESIGN.md §5.3, §6.3). Pure : ne mute rien et ne lit que des champs
 // publics (status, current, players[i].rack, board, locked, mottes, orientation).
-// H6 : le premier coup exige au moins 2 tuiles et couvre le Soleil. H7 : un mot principal d'une lettre est
-// légal s'il est au dictionnaire.
+// H6 : le premier coup exige au moins 2 tuiles et couvre le Soleil. H7 : un mot principal d'une lettre n'est
+// vérifié (au dictionnaire) que s'il est le seul mot formé par la pose.
 import { CELLS, CENTER, RACK_SIZE, MAX_STACK, JOKER, rowOf, colOf } from './constants.js';
 import { top, height, isBoardEmpty, neighbors, sequenceAt } from './board.js';
 import { wordsFormed } from './words.js';

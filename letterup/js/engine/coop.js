@@ -1,5 +1,5 @@
 // Mode coopératif (DESIGN.md §7). Pur : ne mute rien.
-// H10 : fin sur score max, deux passes consécutives ou mains vides. H11 : arbres (voir territory.js).
+// H10′ : fin sur score max, première passe (« Terminer ») ou chevalet d'équipe vide (H12′). H11 : arbres (voir territory.js).
 import { PAWNS } from './constants.js';
 
 /** Score maximal : tous les pions marron posés et tous les arbres plantés (8 + 5). */

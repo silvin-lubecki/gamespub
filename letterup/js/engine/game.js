@@ -1,8 +1,9 @@
 // Création de partie et boucle de tour compétitive (DESIGN.md §5.3, §6.1, §6.2, §6.6).
 // Hypothèses utilisées : H4 (Y voyelle, joker ignoré, test à la distribution initiale seulement),
-// H5 (premier joueur : joker re-tiré, égalité re-tirée), H9 (fin « sac insuffisant »), H12 (coop : mains
-// individuelles), H10 (coop : passer, fins de partie). Le mode coopératif (§7) est branché ici (LU-06).
-import { CELLS, JOKER, PAWNS, RACK_SIZE, VOWELS } from './constants.js';
+// H5 (premier joueur : joker re-tiré, égalité re-tirée), H9 (fin « sac insuffisant »), H12′ (coop : un seul
+// chevalet d'équipe, siège 0, pas de tour), H10′ (coop : passer = terminer), H18 (état v2). Le mode coopératif
+// (§7) est branché ici (LU-06, LU-15).
+import { CELLS, JOKER, PAWNS, RACK_SIZE, STATE_VERSION, VOWELS } from './constants.js';
 import { createBag, draw, returnTiles } from './bag.js';
 import { COOP_MOTIFS, motteCells } from './layout.js';
 import { seedState, shuffle } from './rng.js';
@@ -78,17 +79,18 @@ export function createGame({ mode, seed, coop } = {}) {
   let rng = seedState(seed);
   let bag;
   ({ array: bag, rng } = shuffle(createBag(), rng));
-  const first = drawFirstPlayer(bag, rng);
-  ({ bag, rng } = first);
+  // H12′ : coop = un seul siège (équipe), pas de tirage du premier joueur.
+  const first = mode === 'coop' ? { current: 0, firstDraw: null } : drawFirstPlayer(bag, rng);
+  if (mode !== 'coop') ({ bag, rng } = first);
   const players = [];
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < (mode === 'coop' ? 1 : 2); i++) {
     const dealt = dealRack(bag, rng);
     ({ bag, rng } = dealt);
     players.push({ rack: dealt.rack, pawnsLeft: PAWNS.versus });
   }
 
   return {
-    v: 1,
+    v: STATE_VERSION,
     mode,
     coop: coopState,
     rng,
@@ -128,7 +130,7 @@ function endGame(state, events, result) {
   events.push({ type: 'game-over', result });
 }
 
-// Fin de coup coop : repioche jusqu'à 6 (sac vide ≠ fin), puis fins `max` / mains vides (H10).
+// Fin de coup coop : repioche jusqu'à 6 (sac vide ≠ fin), puis fins `max` / chevalet vide (H10′, H12′).
 function finishCoopPlay(state, player, events) {
   state.passes = 0;
   const need = RACK_SIZE - state.players[player].rack.length;
@@ -138,10 +140,9 @@ function finishCoopPlay(state, player, events) {
   if (drawn.tiles.length > 0) events.push({ type: 'drew', player, count: drawn.tiles.length });
   if (isCoopMax(state)) {
     endGame(state, events, coopResult(state, 'max'));
-  } else if (state.players.every((p) => p.rack.length === 0)) {
+  } else if (state.players[player].rack.length === 0) {
     endGame(state, events, coopResult(state, 'stuck'));
   } else {
-    state.current = 1 - player;
     state.turn++;
   }
   return { ok: true, state, events };
@@ -150,12 +151,8 @@ function finishCoopPlay(state, player, events) {
 function applyPass(state, player) {
   const events = [{ type: 'passed', player }];
   state.passes++;
-  if (state.passes >= 2) {
-    endGame(state, events, coopResult(state, 'stuck'));
-  } else {
-    state.current = 1 - player;
-    state.turn++;
-  }
+  // H10′ : un seul chevalet, sans échange → passer (« Terminer ») termine la partie pour toute l'équipe.
+  endGame(state, events, coopResult(state, 'stuck'));
   return { ok: true, state, events };
 }
 

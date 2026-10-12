@@ -150,7 +150,10 @@ main { flex: 1; display: flex; flex-direction: column; }
   box-shadow: inset 0 0 0 1px rgb(74 44 23 / 0.35);
 }
 .cell .motif { position: absolute; inset: 12%; width: 76%; height: 76%; opacity: 0.9; }
-.cell .motte { position: absolute; inset: 4%; width: 92%; height: 92%; filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.4)); }
+.cell.has-motte { background: #000000; }
+.cell.has-motte::after { content: ''; position: absolute; inset: 0; border: 1.5px solid var(--cream); border-radius: inherit; pointer-events: none; }
+.cell.has-motte .motif { display: none; }
+.cell .motte { position: absolute; inset: 0; width: 100%; height: 100%; }
 
 .tile {
   position: relative;
@@ -219,11 +222,11 @@ main { flex: 1; display: flex; flex-direction: column; }
   color: var(--brown);
 }
 .slot.is-empty { margin: 22%; border: 1.5px dashed rgb(246 236 210 / 0.55); }
-.slot .pawn, .slot .tree { position: absolute; inset: 6%; width: 88%; height: 88%; }
+.slot .pawn, .slot .tronc, .slot .tree { position: absolute; inset: 6%; width: 88%; height: 88%; }
 .slot.pawn-green { color: var(--green); }
 .slot.pawn-brown { color: var(--brown); }
-.slot .pawn { filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.4)); }
-.slot.is-permanent .pawn { filter: drop-shadow(0 0 2px var(--gold)); }
+.slot .pawn, .slot .tronc { filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.4)); }
+.slot.is-permanent .pawn, .slot.is-permanent .tronc { filter: drop-shadow(0 0 2px var(--gold)); }
 .slot .tree { inset: -8% 6% 6%; width: 88%; height: 100%; }
 
 /* ---- Écran Partie (LU-10, DESIGN.md §10.1-10.2) ---- */
@@ -308,7 +311,7 @@ dialog.letter-picker, dialog.confirm-dialog { border: 2px solid var(--brown); bo
 .motif-card { display: flex; align-items: center; gap: 0.5rem; }
 .motif-card.is-selected { outline: 3px solid var(--accent); }
 .motif-thumb { width: 2rem; height: 2rem; }
-.coop-preview { display: flex; justify-content: center; }
+.coop-preview { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
 .coop-preview .board { --board-size: min(70vw, 18rem); }
 .end-stars { font-size: 2.5rem; margin: 0; }
 .star { display: inline-block; color: var(--brown); }
