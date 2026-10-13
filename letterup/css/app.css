@@ -343,3 +343,7 @@ body.rules-open #screen-rules { display: flex; }
     scroll-behavior: auto !important;
   }
 }
+
+/* Compteur de mots possibles (LU-21, H24) : « Terminer » mis en évidence quand plus aucun coup n'est possible */
+.coop-moves.is-empty { font-weight: 700; color: var(--accent); }
+.btn.is-suggested { background: var(--accent); outline: 3px solid var(--gold); outline-offset: 2px; }

@@ -9,5 +9,6 @@ export { createGame, drawFirstPlayer, isUnbalancedRack, applyAction, viewFor } f
 export { top, height, isEmpty, isBoardEmpty, neighbors, lineCells, sequenceAt } from './board.js';
 export { wordsFormed } from './words.js';
 export { validatePlay, placeTiles } from './placement.js';
+export { createPlaySearch, findPlays, toPlayAction } from './moves.js';
 export { edgeSlotsTouched, applyTerritories } from './territory.js';
 export { coopScore, starsFor, STAR_TIERS, coopResult, isCoopMax, COOP_MAX_SCORE } from './coop.js';

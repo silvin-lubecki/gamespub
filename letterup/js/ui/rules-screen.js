@@ -1,4 +1,4 @@
-// Écran Règles (LU-14, DESIGN.md §10.1) : résumé des règles en français et hypothèses H1–H14 (H10′/H12′ en coop), H15–H23 en langage joueur.
+// Écran Règles (LU-14, DESIGN.md §10.1) : résumé des règles en français et hypothèses H1–H12 (H10′/H12′ en coop), H14–H26 en langage joueur (H13 est remplacée par H26).
 // Aucun accès au DOM à l'import. Les paliers d'étoiles sont générés depuis STAR_TIERS (source unique).
 import { STAR_TIERS } from '../engine/index.js';
 import { tierText } from './messages.js';
@@ -49,6 +49,7 @@ export const RULES_SECTIONS = [
     'Mot traversant : un mot de 7 lettres d’un bord à l’autre plante un tronc permanent à chaque extrémité et verrouille ses cases ; il compte pour la 3ᵉ étoile.',
     'Score = troncs + arbres. Paliers :',
     ...STAR_TIERS.map(tierText),
+    'Sous les lettres de l’équipe, « Mots possibles » indique combien de mots différents l’équipe peut encore poser ; il ne montre pas lesquels (100+ au-delà de 100). À « Aucun mot possible », le bouton « Terminer » est mis en évidence : la partie ne s’arrête jamais toute seule.',
     'La partie se termine au score maximal (8 troncs et 5 arbres), quand l’équipe appuie sur « Terminer », ou quand le chevalet d’équipe est vide. Le sac vide ne termine pas la partie.',
   ] },
 ];
@@ -67,7 +68,6 @@ export const ASSUMPTIONS = {
   'H10′': 'Coopératif : le bouton Terminer (avec confirmation) arrête aussitôt la partie pour toute l’équipe ; elle s’arrête aussi quand le chevalet d’équipe est vide ou au score maximal (13).',
   H11: 'Un arbre n’est planté que si le mot touchant le bord contient une pose qui recouvre une tuile ce tour-là, sur un emplacement déjà marron.',
   'H12′': 'Coopératif : un seul chevalet d’équipe de 6 lettres, réserve de troncs et d’arbres commune, pas de tour : chacun pose quand il veut ; le chevalet est complété après chaque pose et le sac vide ne termine pas la partie.',
-  H13: 'Le dictionnaire est volontairement permissif (Grammalecte : toutes variantes, y compris familier, vieilli, régional ; orthographe rectifiée de 1990).',
   H14: 'La publication d’une nouvelle version sur le site n’est jamais fusionnée automatiquement : une personne la valide.',
   H15: 'Coopératif à deux : le premier coup reçu est joué ; un coup composé sur un état déjà modifié par votre coéquipier est refusé et votre brouillon est effacé. Vos poses provisoires restent locales, seuls les coups validés sont partagés.',
   H16: 'Jouer « à plusieurs » signifie à deux : l’hôte et un invité ; une troisième personne est refusée.',
@@ -78,6 +78,9 @@ export const ASSUMPTIONS = {
   H21: 'Coopératif à deux : l’hôte attend son invité au salon avant de jouer. Une partie solo ne peut pas être ouverte à un ami en cours de route.',
   H22: 'Coopératif à deux : le journal des coups indique qui a joué (vous ou votre coéquipier).',
   H23: 'Aucun sens n’est imposé par le premier mot : chaque coup est sur une seule ligne, horizontale ou verticale, lue de gauche à droite ou de haut en bas. Avant le premier mot, les flèches ↶ ↷ font tourner le plateau d’un quart de tour (les cases noircies suivent, les lettres restent droites) ; en compétitif, c’est le joueur dont c’est le tour.',
+  H24: 'Coopératif : le compteur « Mots possibles » donne le nombre de mots différents que l’équipe peut poser sur le plateau validé avec ses lettres actuelles (affiché 100+ au-delà de 100). Il est calculé sur votre appareil et ne change aucune règle : « Terminer » reste une décision de l’équipe.',
+  H25: 'Le compteur n’est affiché qu’en mode coopératif (seul, à deux ou sur un seul écran) ; en compétitif, il n’y en a pas.',
+  H26: 'Le dictionnaire est libre (Lexique Grammalecte, MPL 2.0), proche mais différent de l’ODS, le dictionnaire officiel du Scrabble, qui n’est pas librement redistribuable : un mot accepté ici peut être refusé au Scrabble, et inversement. Il est volontairement permissif (toutes variantes, y compris familier, vieilli, régional ; orthographe rectifiée de 1990).',
 };
 
 function el(tag, text, className) {

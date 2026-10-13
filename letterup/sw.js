@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'letterup-0.0.3';
+const CACHE_VERSION = 'letterup-0.0.4';
 const PRECACHE = [
   './',
   './index.html',
@@ -16,6 +16,7 @@ const PRECACHE = [
   './js/engine/game.js',
   './js/engine/index.js',
   './js/engine/layout.js',
+  './js/engine/moves.js',
   './js/engine/placement.js',
   './js/engine/rng.js',
   './js/engine/territory.js',
@@ -35,6 +36,7 @@ const PRECACHE = [
   './js/ui/input.js',
   './js/ui/lobby-screen.js',
   './js/ui/messages.js',
+  './js/ui/move-count.js',
   './js/ui/rack-view.js',
   './js/ui/rules-screen.js',
   './js/ui/solo-save.js',

@@ -1,15 +1,16 @@
 // Écran Partie (LU-10, DESIGN.md §10.1-10.2) : plateau (LU-09), chevalet, scores, actions, prévisualisation, journal.
 // Hypothèses utilisées : H3/H8 (slots surlignés), H9 (fin par sac épuisé), H2/H19 (cases noircies : poses refusées ; coop : troncs),
-// H10′ (Terminer en coop), H11 (arbres), H12′ (chevalet, objectif et réserve communs) — voir messages.js et turn-state.js.
+// H10′ (Terminer en coop), H24/H25 (compteur de mots possibles : coop seulement, jamais en compétitif), H11 (arbres), H12′ (chevalet, objectif et réserve communs) — voir messages.js et turn-state.js.
 // LU-18 (H15, H22) : en coop à deux, pas de tour ; le coup du coéquipier efface le brouillon avec un toast, `stale` aussi.
 // H23 : flèches ↶ ↷ (quart de tour du plateau) tant qu'aucune tuile n'est posée ; un tour du plateau efface le brouillon.
 // En coop : bouton « Terminer » et panneau d'objectif commun ; « Renouveler » est masqué.
 import { COOP_MAX_SCORE, JOKER, MOTIFS, coopScore } from '../engine/index.js';
 import { renderBoard } from './board-view.js';
 import { renderRack, identityOrder, shuffleOrder } from './rack-view.js';
+import { createMoveCounter } from './move-count.js';
 import { attachInput } from './input.js';
 import { pickLetter, confirmDialog, toast } from './dialogs.js';
-import { DEFAULT_NAMES, LEVEL_NAMES, coopCountsText, coopReserveText, describeEvent, draftClearedMessage, errorMessage, eventToast, nextTierText, previewSlotsText, starsLine, turnStatus } from './messages.js';
+import { DEFAULT_NAMES, LEVEL_NAMES, coopCountsText, coopReserveText, describeEvent, draftClearedMessage, errorMessage, eventToast, finishConfirmText, movesCountText, nextTierText, previewSlotsText, starsLine, turnStatus } from './messages.js';
 import { blockedReason, canDropOn, computePreview, initialTurn, pendingForBoard, reduceTurn, isRotationOnly, rotateControls, toPlacements } from './turn-state.js';
 
 const LOG_SIZE = 10;
@@ -34,6 +35,13 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
   let log = [];
   let lastMove = { cells: [], slots: [] };
   let busy = false;
+  let moves = null; // H24 : { words, capped } du dernier calcul terminé, null pendant le calcul
+  // H25 : pas de compteur en compétitif. Recalcul à chaque vue validée (onChange), pas à chaque pose provisoire.
+  const counter = controller.getView().mode === 'coop' ? createMoveCounter({ dict }) : null;
+  const movesLine = el('span', 'coop-moves'); // persistante : une région `aria-live` ne doit pas être recréée à chaque rendu
+  movesLine.setAttribute('aria-live', 'polite');
+  let coopBox = null;
+  let coopBag = null;
 
   root.classList.add('game');
   const status = el('p', 'game-status');
@@ -73,12 +81,17 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
   }
 
   function renderScores(view) {
-    scoreboard.replaceChildren();
     if (view.mode === 'coop') { // chevalet, objectif, score et réserve communs (H12′)
       const { coop } = view;
       const { score, stars } = coopScore(view);
-      const box = el('div', 'score score-brown coop-goal');
-      box.append(
+      if (!coopBox) {
+        coopBox = el('div', 'score score-brown coop-goal');
+        coopBag = el('div', 'bag-count');
+        coopBox.append(movesLine);
+        scoreboard.replaceChildren(coopBox, coopBag);
+      }
+      for (const n of [...coopBox.children]) if (n !== movesLine) n.remove();
+      const lines = [
         el('strong', '', `${solo ? 'Solo' : 'Équipe'} — ${LEVEL_NAMES[coop.level]} · ${MOTIFS[coop.motif].name}`),
         el('span', '', coopCountsText(coop)),
         el('span', 'coop-score', `Score : ${score}/${COOP_MAX_SCORE}`),
@@ -86,11 +99,13 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
         el('span', '', nextTierText(coop)),
         el('span', '', coopReserveText(coop)),
         el('span', '', `Lettres de l’équipe : ${view.players[controller.you].rack.length}`),
-      );
-      box.querySelector('.coop-stars').setAttribute('aria-label', `${stars} étoile${stars > 1 ? 's' : ''} sur 3`);
-      scoreboard.append(box, el('div', 'bag-count', `Sac : ${view.bagCount} lettre${view.bagCount > 1 ? 's' : ''}`));
+      ];
+      lines[3].setAttribute('aria-label', `${stars} étoile${stars > 1 ? 's' : ''} sur 3`);
+      for (const n of lines) coopBox.insertBefore(n, movesLine); // le compteur reste en dernière ligne, sous « Lettres de l’équipe »
+      coopBag.textContent = `Sac : ${view.bagCount} lettre${view.bagCount > 1 ? 's' : ''}`;
       return;
     }
+    scoreboard.replaceChildren();
     for (const p of [0, 1]) {
       const info = view.players[p];
       const letters = info.rack ? info.rack.length : info.rackCount;
@@ -99,6 +114,18 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
       scoreboard.append(box);
     }
     scoreboard.append(el('div', 'bag-count', `Sac : ${view.bagCount} lettre${view.bagCount > 1 ? 's' : ''}`));
+  }
+
+  /** Ligne « Mots possibles » et mise en évidence de « Terminer » à 0 (H24, H10′ : jamais de fin automatique). */
+  function renderMoves() {
+    if (!counter) return;
+    const playing = controller.getView().status === 'playing';
+    const none = playing && moves?.words === 0;
+    movesLine.hidden = !playing;
+    const text = movesCountText(moves);
+    if (movesLine.textContent !== text) movesLine.textContent = text; // pas de réécriture inutile : une région aria-live réannoncerait le même texte
+    movesLine.classList.toggle('is-empty', none);
+    actions.querySelector('[data-action="pass"]')?.classList.toggle('is-suggested', none);
   }
 
   function renderPreview(p, mode) {
@@ -173,6 +200,7 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
       disabled: !myTurn,
     });
     renderActions(view, p, myTurn);
+    renderMoves();
 
     logList.replaceChildren(...log.slice(0, LOG_SIZE).map((line) => el('li', '', line)));
   }
@@ -244,7 +272,7 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
         break;
       }
       case 'pass': {
-        if (!await confirmDialog({ message: 'Plus aucun mot possible ? La partie s’arrête pour toute l’équipe.', confirmLabel: 'Terminer' })) break;
+        if (!await confirmDialog({ message: finishConfirmText(moves), confirmLabel: 'Terminer' })) break;
         busy = true;
         render();
         const r = await controller.act({ type: 'pass' });
@@ -258,7 +286,9 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
   }
   root.addEventListener('click', onClick);
 
+  const stopCounting = counter?.onResult((r) => { moves = r; renderMoves(); });
   const unsubscribe = controller.onChange((view, events) => {
+    counter?.update(view, controller.you);
     // Pas de toast « coéquipier » si mon propre coup est en vol : le rejet `stale` s'en charge (A25).
     const notice = draftClearedMessage(events, { mode: view.mode, participant: controller.participant, hadDraft: turn.pending.length > 0 && !busy });
     turn = initialTurn();
@@ -278,9 +308,12 @@ export function createGameScreen(root, { controller, dict, names = DEFAULT_NAMES
     if (notice) toast(notice);
   });
 
+  counter?.update(controller.getView(), controller.you);
   render();
   return {
     destroy() {
+      stopCounting?.();
+      counter?.dispose();
       detachInput();
       unsubscribe();
       root.removeEventListener('click', onClick);

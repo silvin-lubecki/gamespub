@@ -2,7 +2,7 @@
 // Hypothèses utilisées : H6 (premier mot : au moins 2 lettres), H7 (pas de territoire sous 2 lettres),
 // H9 (fin de partie par sac épuisé), H10′ (coop : « Terminer » ; fins « score max » et « plus de coup possible »),
 // H11 (arbres), H12′ (un chevalet d'équipe, score et réserve communs en coop), H19 (coop : cases noircies, troncs, arbres, mot traversant),
-// H20 (paliers d'étoiles générés depuis STAR_TIERS), H15/H16/H22 (coop à deux : attribution `by`, brouillon effacé par le coup du coéquipier).
+// H24 (compteur de mots possibles, coop), H20 (paliers d'étoiles générés depuis STAR_TIERS), H15/H16/H22 (coop à deux : attribution `by`, brouillon effacé par le coup du coéquipier).
 import { COOP_MAX_SCORE, COOP_MOTIFS, MOTIFS, PAWNS, STAR_TIERS, motteCells, starsFor } from '../engine/index.js';
 import { STATUS_MY_TURN, STATUS_THEIR_TURN } from './status.js';
 
@@ -26,6 +26,22 @@ export const coopCountsText = (coop) =>
 
 /** « Réserve : 5 troncs, 4 arbres » (coop, H19). */
 export const coopReserveText = (coop) => `Réserve : ${plural(coop.brownLeft, 'tronc')}, ${plural(coop.treesLeft, 'arbre')}`;
+
+/** Nombre affiché : « 24 », ou « 100+ » quand le plafond est atteint (H24). */
+const movesNumber = ({ words, capped }) => `${words}${capped ? '+' : ''}`;
+
+/** Ligne du compteur coop (H24) : `null` = calcul en cours ; `{ words, capped }` sinon. */
+export function movesCountText(r) {
+  if (!r) return 'Mots possibles : …';
+  return r.words === 0 ? 'Aucun mot possible' : `Mots possibles : ${movesNumber(r)}`;
+}
+
+/** Confirmation de « Terminer » (coop, H10′) : mentionne le nombre de mots encore possibles s'il est connu et non nul. */
+export function finishConfirmText(r) {
+  if (!r || r.words === 0) return 'Plus aucun mot possible ? La partie s’arrête pour toute l’équipe.';
+  const rest = r.words === 1 && !r.capped ? 'Il reste encore 1 mot possible.' : `Il reste encore ${movesNumber(r)} mots possibles.`;
+  return `${rest} Terminer quand même ? La partie s’arrête pour toute l’équipe.`;
+}
 
 /** « Facile — 4 cases noires » : une case noircie par instance du symbole (H20). */
 export const coopLevelLabel = (level) => `${LEVEL_NAMES[level]} — ${motteCells(COOP_MOTIFS[level][0]).length} cases noires`;
