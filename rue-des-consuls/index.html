@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#8a3b1e">
+  <title>La Rue des Consuls</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./css/app.css">
+  <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js" integrity="sha384-x0YgkOr/3UOZP2CRDxGW9e0Q+2Qjyr3uJrm4xU32Y7ZCNAo7Cc7bjhrZMi/dwczu" crossorigin="anonymous"></script>
+  <script type="module" src="./js/main.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <h1 class="title">La Rue des Consuls</h1>
+  </header>
+  <div id="status" role="status" aria-live="polite"></div>
+  <main>
+    <section id="screen-home" class="screen" hidden></section>
+    <section id="screen-lobby" class="screen" hidden></section>
+    <section id="screen-game" class="screen" hidden></section>
+    <section id="screen-end" class="screen" hidden></section>
+    <section id="screen-rules" class="screen rules" hidden>
+      <p><button type="button" class="btn" data-act="back">← Retour</button></p>
+      <h2>À retenir en une minute</h2>
+      <ul>
+        <li>Vous êtes un marchand de la Rue des Consuls : à votre tour, <b>une seule action</b> parmi Marché, Prendre ou Visiter.</li>
+        <li><b>Marché</b> : 3 ressources sont révélées et rejoignent votre main, puis vous pouvez échanger des cartes avec les autres joueurs par offres (« Je donne » / « Je demande »), contre-propositions ou dons.</li>
+        <li><b>Prendre</b> : choisissez une commande de la rivière (3 commandes actives au maximum).</li>
+        <li><b>Visiter</b> : chez <b>un seul artisan</b>, déposez vos commandes réalisables en payant leur recette. Impossible le vendredi.</li>
+        <li>Quand la file d'un artisan est pleine, il <b>produit</b> : chaque commande rapporte des DH, la majorité stricte gagne +2 DH, et l'artisan devient <b>Renommé</b> (primes, commandes verrouillées 🔒 accessibles).</li>
+        <li>Limite de main : <b>10 ressources</b> en fin de tour (les plus anciennes sont défaussées).</li>
+        <li>Fin : dès qu'un joueur a <b>7 commandes produites</b>, on termine le tour de table. Score = DH − 2 × commandes encore actives.</li>
+      </ul>
+      <h2>Règle complète</h2>
+      <p>Mise en place : 5 ressources et 2 commandes Départ par joueur, rivière de 5 commandes (jamais plus de 2 du même artisan à la mise en place), premier joueur tiré au sort. Un tour = une action, puis la limite de main pour tous. Le calendrier avance d'un jour après chaque tour de table complet (Lundi à Vendredi, puis Lundi) ; le vendredi, les artisans sont fermés : on ne peut que prendre une commande ou ouvrir le Marché.</p>
+      <p>Visite : le premier dépôt choisit l'artisan, les suivants doivent viser le même ; chaque dépôt défausse les copies les plus anciennes de la recette. Production : chaque commande du lot paie sa récompense (+ prime si l'artisan était déjà Renommé) ; le joueur qui a le plus de commandes dans le lot, strictement, gagne +2 DH. Les files incomplètes ne comptent pas à la fin. Classement par score, puis par commandes produites ; sinon victoire partagée.</p>
+      <h2>Hypothèses de cette version</h2>
+      <ul>
+        <li><b>H1</b> 4 sièges exactement ; tout siège non occupé par un humain au lancement devient une IA.</li>
+        <li><b>H2</b> Les mains sont cachées : seul leur nombre est public, ainsi que les 3 ressources révélées au Marché. En mode « 4 joueurs sur un écran », passez l'appareil.</li>
+        <li><b>H3</b> Payer ou donner des cartes retire toujours les copies les plus anciennes.</li>
+        <li><b>H4</b> L'ordre d'un lot reçu simultanément n'est pas choisi : main initiale dans l'ordre de distribution, cartes du Marché dans l'ordre de révélation, cartes d'un échange dans l'ordre des ressources.</li>
+        <li><b>H5</b> Visiter exige au moins un dépôt ; il n'y a pas d'action « passer » (le Marché est toujours possible).</li>
+        <li><b>H6</b> Les ressources révélées entrent dans la main dès la révélation.</li>
+        <li><b>H7</b> Une seule offre ouverte par paire (joueur actif, partenaire) : une nouvelle offre remplace la précédente. Les offres sont publiques ; seul le partenaire visé peut les accepter. Les échanges se font toujours avec le joueur dont c'est le Marché.</li>
+        <li><b>H8</b> Les IA négocient sans anticipation : elles acceptent une offre qui améliore leur main et ne proposent que des échanges 1 contre 1 ; une IA active attend 20 secondes au plus la réponse d'un humain.</li>
+        <li><b>H9</b> Les DH sont des entiers ; un score négatif est possible.</li>
+        <li><b>H10</b> Le premier joueur est tiré au sort et reste le même toute la partie (jeton affiché).</li>
+        <li><b>H11</b> Égalité finale : plus de commandes produites, sinon victoire partagée.</li>
+        <li><b>H12</b> Pioche de commandes épuisée : la rivière peut compter moins de 5 cartes.</li>
+        <li><b>H13</b> En ligne, l'hôte est autoritaire : s'il quitte, la partie est suspendue jusqu'à sa reprise (même lien).</li>
+        <li><b>H14</b> Un joueur déconnecté fait attendre la partie ; l'hôte peut « Confier à l'IA » son siège, qui redevient humain à son retour.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
