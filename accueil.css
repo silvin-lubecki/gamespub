@@ -34,6 +34,7 @@ h2 { margin: 0; font-size: clamp(1.85rem, 3vw, 2.5rem); line-height: 1.15; }
 .tags li { font-size: .75rem; padding: 7px 10px; border: 1px solid #d8d5ca; border-radius: 30px; }
 .play { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 18px; border-radius: 9px; background: var(--accent); color: white; text-decoration: none; font-weight: 650; line-height: 1.4; }
 .play:hover { text-decoration: underline; }
+.play span { width: 9px; height: 9px; border-top: 2px solid; border-right: 2px solid; transform: rotate(45deg); flex-shrink: 0; }
 .note { margin-block: 32px 52px; padding: 22px 26px; border-left: 3px solid #a8ae99; color: #535c56; font-size: .9rem; line-height: 1.7; }
 .note p { margin: 0; }
 .note p + p { margin-top: 5px; }
