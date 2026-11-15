@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#2c5aa0"/>
+<g stroke="#8d8468" stroke-width="5">
+<g transform="rotate(-14 256 270)"><rect x="92" y="130" width="150" height="210" rx="22" fill="#fffbea"/><text x="167" y="268" font-size="104" font-family="system-ui, sans-serif" font-weight="700" text-anchor="middle" fill="#c62828" stroke="none">7</text><polygon points="167,286 195,314 167,342 139,314" fill="#c62828" stroke="none"/></g>
+<g transform="rotate(14 256 270)"><rect x="270" y="130" width="150" height="210" rx="22" fill="#fffbea"/><text x="345" y="268" font-size="104" font-family="system-ui, sans-serif" font-weight="700" text-anchor="middle" fill="#1565c0" stroke="none">7</text><polygon points="345,288 374,336 316,336" fill="#1565c0" stroke="none"/></g>
+<g><rect x="181" y="150" width="150" height="210" rx="22" fill="#fffbea"/>
+<path d="M256 255 V190 A65 65 0 0 1 321 255 Z" fill="#1565c0" stroke="none"/><path d="M256 255 H321 A65 65 0 0 1 256 320 Z" fill="#b34700" stroke="none"/><path d="M256 255 V320 A65 65 0 0 1 191 255 Z" fill="#c62828" stroke="none"/><path d="M256 255 H191 A65 65 0 0 1 256 190 Z" fill="#1f1f1f" stroke="none"/>
+<polygon points="212,227 242,227 227,257" fill="#fffbea" stroke="none"/><polygon points="270,227 300,227 285,257" fill="#fffbea" stroke="none"/><path d="M212 284 Q256 322 300 284" fill="none" stroke="#fffbea" stroke-width="12" stroke-linecap="round"/></g>
+</g></svg>
