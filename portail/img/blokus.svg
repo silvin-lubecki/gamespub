@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img">
+<title>Blokus</title>
+<rect width="320" height="200" fill="#1c2a3a"/>
+<rect x="32" y="28" width="28" height="28" fill="#0072b2" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="28" width="28" height="28" fill="#0072b2" stroke="#ffffff" stroke-width="2"/>
+<rect x="88" y="28" width="28" height="28" fill="#0072b2" stroke="#ffffff" stroke-width="2"/>
+<rect x="88" y="56" width="28" height="28" fill="#0072b2" stroke="#ffffff" stroke-width="2"/>
+<rect x="180" y="8" width="28" height="28" fill="#f0e442" stroke="#ffffff" stroke-width="2"/>
+<rect x="180" y="36" width="28" height="28" fill="#f0e442" stroke="#ffffff" stroke-width="2"/>
+<rect x="208" y="36" width="28" height="28" fill="#f0e442" stroke="#ffffff" stroke-width="2"/>
+<rect x="208" y="64" width="28" height="28" fill="#f0e442" stroke="#ffffff" stroke-width="2"/>
+<rect x="32" y="104" width="28" height="28" fill="#d55e00" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="104" width="28" height="28" fill="#d55e00" stroke="#ffffff" stroke-width="2"/>
+<rect x="60" y="132" width="28" height="28" fill="#d55e00" stroke="#ffffff" stroke-width="2"/>
+<rect x="88" y="132" width="28" height="28" fill="#d55e00" stroke="#ffffff" stroke-width="2"/>
+<rect x="88" y="160" width="28" height="28" fill="#d55e00" stroke="#ffffff" stroke-width="2"/>
+<rect x="208" y="100" width="28" height="28" fill="#009e73" stroke="#ffffff" stroke-width="2"/>
+<rect x="180" y="128" width="28" height="28" fill="#009e73" stroke="#ffffff" stroke-width="2"/>
+<rect x="208" y="128" width="28" height="28" fill="#009e73" stroke="#ffffff" stroke-width="2"/>
+<rect x="236" y="128" width="28" height="28" fill="#009e73" stroke="#ffffff" stroke-width="2"/>
+<rect x="208" y="156" width="28" height="28" fill="#009e73" stroke="#ffffff" stroke-width="2"/>
+</svg>

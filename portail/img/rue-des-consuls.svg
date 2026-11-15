@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img">
+<title>La Rue des Consuls</title>
+<rect width="320" height="200" fill="#4a3320"/>
+<rect x="40" y="36" width="30" height="40" fill="#d55e00"/>
+<rect x="70" y="36" width="30" height="40" fill="#f6efe0"/>
+<rect x="100" y="36" width="30" height="40" fill="#d55e00"/>
+<rect x="130" y="36" width="30" height="40" fill="#f6efe0"/>
+<rect x="160" y="36" width="30" height="40" fill="#d55e00"/>
+<rect x="190" y="36" width="30" height="40" fill="#f6efe0"/>
+<rect x="220" y="36" width="30" height="40" fill="#d55e00"/>
+<rect x="250" y="36" width="30" height="40" fill="#f6efe0"/>
+<rect x="40" y="76" width="240" height="6" fill="#2b1d10"/>
+<rect x="52" y="82" width="8" height="84" fill="#2b1d10"/>
+<rect x="260" y="82" width="8" height="84" fill="#2b1d10"/>
+<rect x="40" y="130" width="240" height="12" fill="#8a5a2b"/>
+<circle cx="92" cy="118" r="12" fill="#e69f00"/>
+<circle cx="124" cy="118" r="12" fill="#009e73"/>
+<circle cx="156" cy="118" r="12" fill="#56b4e9"/>
+<rect x="184" y="106" width="24" height="24" fill="#cc79a7" rx="4"/>
+<rect x="220" y="106" width="24" height="24" fill="#f0e442" rx="4"/>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img">
+<title>Rummikub</title>
+<rect width="320" height="200" fill="#3b2a4d"/>
+<rect x="36" y="40" width="56" height="80" fill="#f6efe0" rx="8"/>
+<circle cx="64" cy="73" r="5" fill="#0072b2"/>
+<rect x="100" y="40" width="56" height="80" fill="#f6efe0" rx="8"/>
+<circle cx="128" cy="66" r="5" fill="#d55e00"/>
+<circle cx="128" cy="80" r="5" fill="#d55e00"/>
+<rect x="164" y="40" width="56" height="80" fill="#f6efe0" rx="8"/>
+<circle cx="192" cy="59" r="5" fill="#009e73"/>
+<circle cx="192" cy="73" r="5" fill="#009e73"/>
+<circle cx="192" cy="87" r="5" fill="#009e73"/>
+<rect x="228" y="40" width="56" height="80" fill="#f6efe0" rx="8"/>
+<circle cx="256" cy="52" r="5" fill="#e69f00"/>
+<circle cx="256" cy="66" r="5" fill="#e69f00"/>
+<circle cx="256" cy="80" r="5" fill="#e69f00"/>
+<circle cx="256" cy="94" r="5" fill="#e69f00"/>
+<rect x="28" y="140" width="264" height="22" fill="#7a5230" rx="6"/>
+</svg>
