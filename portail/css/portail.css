@@ -1,0 +1,112 @@
+/* Page d'accueil (PORT-01). Thèmes clair et sombre ; contrastes AA ; aucune police externe. */
+:root {
+  color-scheme: light dark;
+  --bg: #f7f5f0;
+  --fg: #1d2433;
+  --muted: #4a5365;
+  --card: #ffffff;
+  --border: #d6d2c8;
+  --accent: #00589a;
+  --accent-fg: #ffffff;
+  --badge-bg: #e3efe9;
+  --badge-fg: #0b4d36;
+  --soon-bg: #ece8dd;
+  --soon-fg: #4a4538;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12161f;
+    --fg: #eef0f5;
+    --muted: #b4bccb;
+    --card: #1c2230;
+    --border: #343c50;
+    --accent: #7cc0ff;
+    --accent-fg: #0b1220;
+    --badge-bg: #1d3a30;
+    --badge-fg: #a8e6c9;
+    --soon-bg: #2b2f3b;
+    --soon-fg: #c9ccd6;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 1rem/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+.site-header, main, .site-footer {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+
+.site-header { padding-block: 2rem 1rem; }
+.site-header h1 { margin: 0 0 .25rem; font-size: clamp(1.6rem, 5vw, 2.4rem); line-height: 1.2; }
+.site-header p { margin: 0; color: var(--muted); }
+
+.games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1.25rem;
+  margin: 1rem 0 2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.game {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+}
+
+.thumb { display: block; width: 100%; height: auto; aspect-ratio: 8 / 5; background: #25324a; }
+.body { display: flex; flex: 1; flex-direction: column; gap: .5rem; padding: 1rem; }
+.body h2 { margin: 0; font-size: 1.25rem; line-height: 1.3; }
+.pitch { flex: 1; margin: 0; }
+.meta { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin: 0; color: var(--muted); font-size: .9rem; }
+.version {
+  align-self: flex-start;
+  margin: 0;
+  padding: .1rem .6rem;
+  border-radius: 1rem;
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font-size: .85rem;
+  font-weight: 600;
+}
+.game.soon .version { background: var(--soon-bg); color: var(--soon-fg); }
+.version[hidden], #empty[hidden] { display: none; }
+
+.play {
+  align-self: flex-start;
+  padding: .6rem 1.4rem;
+  border-radius: .5rem;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 700;
+  text-decoration: none;
+}
+.play:hover { filter: brightness(1.1); }
+.play:focus-visible, .site-footer a:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+.play:not([href]) { background: var(--soon-bg); color: var(--soon-fg); }
+
+#empty { padding: 2rem 0; color: var(--muted); text-align: center; }
+
+.site-footer { padding-block: 1rem 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .875rem; }
+.site-footer a { color: var(--accent); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

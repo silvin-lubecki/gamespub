@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Jeux de société en ligne : à jouer seul contre des IA ou à plusieurs, dans le navigateur.">
+  <title>Jeux de société en ligne</title>
+  <link rel="icon" type="image/svg+xml" href="./portail/img/favicon.svg">
+  <link rel="stylesheet" href="./portail/css/portail.css">
+  <script type="module" src="./portail/js/portail.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <h1>Jeux de société en ligne</h1>
+    <p>Choisissez un jeu : seul contre des IA, ou à plusieurs.</p>
+  </header>
+  <main>
+    <ul class="games">
+      <li class="game" data-slug="letterup">
+        <img class="thumb" src="./portail/img/letterup.svg" alt="" width="320" height="200" loading="lazy">
+        <div class="body">
+          <h2>Letter Up</h2>
+          <p class="pitch">Posez des lettres, formez des mots et grimpez : en duel ou en coopération.</p>
+          <p class="meta"><span>1 à 2 joueurs</span><span>Solo · En ligne</span></p>
+          <p class="version" hidden></p>
+          <a class="play" href="./letterup/">Jouer<span class="visually-hidden"> à Letter Up</span></a>
+        </div>
+      </li>
+      <li class="game" data-slug="rue-des-consuls">
+        <img class="thumb" src="./portail/img/rue-des-consuls.svg" alt="" width="320" height="200" loading="lazy">
+        <div class="body">
+          <h2>La Rue des Consuls</h2>
+          <p class="pitch">Négociez des ressources et livrez les commandes des artisans de la rue.</p>
+          <p class="meta"><span>1 à 4 joueurs</span><span>Solo · En ligne</span></p>
+          <p class="version" hidden></p>
+          <a class="play" href="./rue-des-consuls/">Jouer<span class="visually-hidden"> à La Rue des Consuls</span></a>
+        </div>
+      </li>
+      <li class="game" data-slug="sequence">
+        <img class="thumb" src="./portail/img/sequence.svg" alt="" width="320" height="200" loading="lazy">
+        <div class="body">
+          <h2>Séquence</h2>
+          <p class="pitch">Alignez cinq jetons sur le plateau avec vos cartes.</p>
+          <p class="meta"><span>2 à 12 joueurs</span><span>Solo · En ligne</span></p>
+          <p class="version" hidden></p>
+          <a class="play" href="./sequence/">Jouer<span class="visually-hidden"> à Séquence</span></a>
+        </div>
+      </li>
+      <li class="game" data-slug="rummikub">
+        <img class="thumb" src="./portail/img/rummikub.svg" alt="" width="320" height="200" loading="lazy">
+        <div class="body">
+          <h2>Rummikub</h2>
+          <p class="pitch">Posez des suites et des brelans de tuiles numérotées, réarrangez la table.</p>
+          <p class="meta"><span>2 à 4 joueurs</span><span>Solo · En ligne</span></p>
+          <p class="version" hidden></p>
+          <a class="play" href="./rummikub/">Jouer<span class="visually-hidden"> à Rummikub</span></a>
+        </div>
+      </li>
+      <li class="game" data-slug="blokus">
+        <img class="thumb" src="./portail/img/blokus.svg" alt="" width="320" height="200" loading="lazy">
+        <div class="body">
+          <h2>Blokus</h2>
+          <p class="pitch">Placez toutes vos pièces en ne touchant les vôtres que par les coins.</p>
+          <p class="meta"><span>2 à 4 joueurs</span><span>Solo · En ligne</span></p>
+          <p class="version" hidden></p>
+          <a class="play" href="./blokus/">Jouer<span class="visually-hidden"> à Blokus</span></a>
+        </div>
+      </li>
+    </ul>
+    <p id="empty" hidden>Aucun jeu n'est disponible pour le moment.</p>
+  </main>
+  <footer class="site-footer">
+    <p>Adaptations non officielles : Letter Up © Unfriendly Games, Séquence®, Rummikub® et Blokus® sont des marques de leurs
+      propriétaires respectifs. Ces projets ne sont ni affiliés ni approuvés par les éditeurs.</p>
+    <p>Code source : <a href="https://github.com/silvin-lubecki/gamespub">gamespub</a>.</p>
+  </footer>
+</body>
+</html>
