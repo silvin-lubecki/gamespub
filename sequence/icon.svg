@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2c5aa0"/>
+  <g transform="translate(256 256) scale(0.74) translate(-248 -256)">
+  <g fill="#fffdf8" stroke="#1d3d70" stroke-width="4">
+    <rect x="86" y="86" width="84" height="100" rx="10"/>
+    <rect x="146" y="146" width="84" height="100" rx="10"/>
+    <rect x="206" y="206" width="84" height="100" rx="10"/>
+    <rect x="266" y="266" width="84" height="100" rx="10"/>
+    <rect x="326" y="326" width="84" height="100" rx="10"/>
+  </g>
+  <g stroke="#fff" stroke-width="6">
+    <circle cx="128" cy="136" r="30" fill="#c0392b"/>
+    <circle cx="188" cy="196" r="30" fill="#c0392b"/>
+    <circle cx="248" cy="256" r="30" fill="#c0392b"/>
+    <circle cx="308" cy="316" r="30" fill="#c0392b"/>
+    <circle cx="368" cy="376" r="30" fill="#c0392b"/>
+  </g>
+  <g fill="#fff">
+    <circle cx="128" cy="136" r="11"/>
+    <circle cx="188" cy="196" r="11"/>
+    <circle cx="248" cy="256" r="11"/>
+    <circle cx="308" cy="316" r="11"/>
+    <circle cx="368" cy="376" r="11"/>
+  </g>
+  </g>
+</svg>
