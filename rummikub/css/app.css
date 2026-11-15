@@ -1,0 +1,68 @@
+/* Rummikub : styles propres au jeu (la base est common/ui/shell.css). Scène 960×540 (hauteur logique fixe, largeur ≥ 960). */
+:root { --accent: #2c5aa0; --felt: #24412f; --ok: #43d17a; --ko: #ff6a5e; }
+.course { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+.course .total { font-size: 1.25rem; }
+
+/* Barre réseau : en haut (en bas elle recouvrirait le chevalet). */
+.net-bar-host { position: fixed; top: 6px; left: 0; right: 0; z-index: 10; display: flex; justify-content: center; pointer-events: none; }
+.net-bar { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; align-items: center; background: none; border: 0; }
+.net-line { padding: 4px 10px; border-radius: 6px; background: rgba(40, 20, 10, 0.92); color: #fff; font-size: 13px; pointer-events: auto; }
+.net-line.is-alert { background: #8a2a1e; }
+.net-line .btn { margin-left: 0.5rem; padding: 2px 8px; font-size: 12px; }
+
+.rum-game { box-sizing: border-box; height: 100%; display: flex; flex-direction: column; gap: 6px; padding: 6px 10px; }
+.topbar { flex: none; height: 32px; display: flex; align-items: center; gap: 10px; }
+.topbar .btn { padding: 3px 10px; font-size: 13px; }
+.players { flex: 1; display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; flex-wrap: wrap; }
+.player { padding: 2px 10px; border-radius: 14px; background: #fff; border: 2px solid transparent; font-size: 14px; }
+.player.is-current { border-color: var(--accent); font-weight: 700; }
+.player-count { display: inline-block; min-width: 1.4em; text-align: center; border-radius: 10px; background: #ddd; font-size: 12px; }
+.player-melded { color: #1f7a3f; }
+.pool { font-size: 13px; color: var(--muted, #666); }
+
+.table { flex: 1; min-height: 0; overflow-y: auto; touch-action: pan-y; background: var(--felt); border-radius: 10px; padding: 8px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; }
+.set { display: flex; align-items: center; gap: 2px; padding: 4px; border: 3px solid; border-radius: 8px; background: rgba(255, 255, 255, 0.07); }
+.set.is-valid { border-color: var(--ok); }
+.set.is-invalid { border-color: var(--ko); }
+.new-set { align-self: flex-start; box-sizing: border-box; min-width: 150px; height: 64px; display: grid; place-items: center; padding: 0 12px; border: 3px dashed rgba(255, 255, 255, 0.55); border-radius: 8px; background: none; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
+.table .tile { width: 36px; height: 50px; }
+.drop-slot { align-self: stretch; min-width: 26px; border: 2px dashed rgba(255, 255, 255, 0.8); border-radius: 6px; background: rgba(255, 255, 255, 0.15); color: #fff; font-size: 18px; cursor: pointer; touch-action: none; }
+.rack .drop-slot { min-width: 0; min-height: 40px; color: var(--fg); border-color: #888; background: #fff; }
+
+.actions { flex: none; height: 36px; display: flex; align-items: center; gap: 8px; }
+.actions .status { flex: 1; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.last-msg { font-weight: 400; color: var(--muted, #666); }
+.meld-sum { font-size: 14px; font-weight: 700; color: #b3261e; }
+.meld-sum.is-ok { color: #1f7a3f; }
+.actions .btn { padding: 5px 14px; }
+
+.rack-area { flex: none; height: 134px; display: flex; gap: 8px; align-items: stretch; }
+.rack { flex: 1; min-width: 0; box-sizing: border-box; padding: 6px; border-radius: 10px; background: #c9b387; display: grid; grid-auto-flow: column; grid-template-rows: repeat(2, min-content); grid-template-columns: repeat(var(--cols, 7), minmax(0, 44px)); gap: 6px; align-content: center; justify-content: center; }
+.rack .tile { width: 100%; height: auto; aspect-ratio: 40 / 56; }
+.sorts { flex: none; width: 108px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+.sorts .btn { padding: 5px 4px; font-size: 13px; }
+
+.tile { display: block; position: relative; padding: 0; border: 0; border-radius: 15%; background: none; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: transform 0.1s; }
+.tile svg { display: block; width: 100%; height: 100%; pointer-events: none; }
+.tile[aria-pressed='true'] { transform: translateY(-6px); outline: 3px solid #ffca28; }
+.tile[data-last] { box-shadow: 0 0 0 3px #ffeb3b, 0 0 10px 2px #ffeb3b; }
+.tile[data-new] { box-shadow: 0 3px 0 #29b6f6; }
+.tile[data-locked] { cursor: default; }
+.tile.small { width: 22px; height: 31px; display: inline-block; cursor: default; }
+.is-dragging .tile { cursor: grabbing; }
+.drag-ghost { position: absolute; z-index: 20; width: 44px; height: 62px; transform: translate(-50%, -50%) rotate(4deg); opacity: 0.92; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45)); }
+.drag-ghost svg { display: block; width: 100%; height: 100%; }
+.drag-count { position: absolute; top: -8px; right: -8px; min-width: 20px; padding: 0 5px; border-radius: 10px; background: var(--accent); color: #fff; font-size: 13px; text-align: center; }
+.rum-game .btn:focus-visible, .tile:focus-visible, .new-set:focus-visible, .drop-slot:focus-visible { outline: 3px solid #ffca28; outline-offset: 2px; }
+
+.scores { border-collapse: collapse; width: 100%; margin: 0.75rem 0; }
+.scores th, .scores td { padding: 4px 8px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: middle; }
+.scores .score { font-weight: 700; font-variant-numeric: tabular-nums; }
+.end-rack { display: flex; flex-wrap: wrap; gap: 2px; }
+.ai-stats { margin: 0.5rem 0; }
+.ai-stats summary { cursor: pointer; }
+
+/* Les messages ne doivent jamais recouvrir le chevalet ni intercepter un geste. */
+.toast { bottom: auto; top: 44px; pointer-events: none; }
+.toast .btn { pointer-events: auto; }
+.rum-game { user-select: none; -webkit-user-select: none; }
