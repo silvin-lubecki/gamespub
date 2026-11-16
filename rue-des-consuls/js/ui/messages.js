@@ -68,6 +68,15 @@ export function eventLines(events, view) {
       case 'trigger': lines.push(`${name(e.seat)} a 7 commandes produites : dernier tour de table.`); break;
       case 'discard': lines.push(`${name(e.seat)} défausse ${plural(e.cards.length, 'carte', 'cartes')} (limite de 10).`); break;
       case 'day': lines.push(`Nouveau jour : ${DAYS[e.day]}.`); break;
+      case 'purge': {
+        const n = e.purged.length;
+        const m = e.river.length;
+        const out = n === 0 ? 'aucune commande à défausser' : n === 1 ? 'la commande de la rivière est défaussée' : `les ${n} commandes de la rivière sont défaussées`;
+        const added = m === 0 ? 'aucune nouvelle révélée' : `${plural(m, 'nouvelle', 'nouvelles')} révélée${m > 1 ? 's' : ''}`;
+        lines.push(`Lundi : ${out}, ${added}.`);
+        break;
+      }
+      case 'recycle': lines.push(`Pioche Commandes vide : la défausse (${plural(e.count, 'carte', 'cartes')}) est remélangée.`); break;
       case 'end': lines.push('Fin de la partie.'); break;
       case 'offer': {
         const o = e.offer;

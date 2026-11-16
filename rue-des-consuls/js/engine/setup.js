@@ -1,5 +1,5 @@
 // RDC-02 (DESIGN.md §5.2, §6.1) : mise en place, rivière filtrée et pioche de ressources.
-// Hypothèses : H1 (4 sièges), H4 (ordre de distribution), H10 (premier joueur tiré par la graine), H12 (rivière < 5).
+// Hypothèses : H1 (4 sièges), H4 (ordre de distribution), H10 (premier joueur tiré par la graine), H12 (rivière < 5 seulement si pioche et défausse vides), H16 (défausse Commande cachée).
 import {
   ARTISANS,
   CATALOG,
@@ -11,7 +11,7 @@ import {
 } from "./catalog.js";
 import { next, seedState, shuffle } from "./rng.js";
 
-export const STATE_VERSION = 1;
+export const STATE_VERSION = 2;
 export const SEATS = 4;
 
 /** Ressource du dessus de la pioche (remélange la défausse si besoin) ; mute l'état. */
@@ -27,15 +27,33 @@ export function drawResource(state) {
 }
 
 /**
- * Ajoute une commande à la rivière (filtre : au plus 2 commandes d'un même artisan) ; mute l'état.
- * Retourne la commande ajoutée, ou null si les pioches sont vides (H12). Port de `refill_river` (engine.py).
+ * Pioche Commande vide et défausse des commandes purgées non vide : la défausse est remélangée pour reformer la pioche
+ * (événement `recycle`) ; mute l'état. Port de `ensure_orders` (engine.py). `events` est facultatif.
  */
-export function refillRiver(state) {
+export function ensureOrders(state, events) {
+  if (state.orderDeck.length === 0 && state.orderDiscard.length > 0) {
+    const count = state.orderDiscard.length;
+    const r = shuffle(state.orderDiscard, state.rng);
+    state.orderDeck = r.array;
+    state.orderDiscard = [];
+    state.rng = r.rng;
+    events?.push({ type: "recycle", count });
+  }
+}
+
+/**
+ * Ajoute une commande à la rivière (filtre : au plus 2 commandes d'un même artisan) ; mute l'état.
+ * Retourne la commande ajoutée, ou null si pioche, défausse et refusées sont vides (H12). Les refusées retournent dans
+ * la pioche, jamais dans la défausse. Port de `refill_river` (engine.py). `events` est facultatif (`recycle`).
+ */
+export function refillRiver(state, events) {
+  ensureOrders(state, events);
   const present = ARTISANS.map(() => 0);
   for (const o of state.river) present[CATALOG[o.type].artisan]++;
   const refused = [];
   let added = null;
   for (;;) {
+    ensureOrders(state, events);
     if (state.orderDeck.length === 0) {
       if (refused.length > 0) added = refused.pop();
       break;
@@ -116,6 +134,7 @@ export function createGame({ seed, names } = {}) {
     artisans: ARTISANS.map(() => ({ renowned: false, queue: [] })),
     river: [],
     orderDeck,
+    orderDiscard: [],
     excluded,
     resDraw,
     resDiscard: [],

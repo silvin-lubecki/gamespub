@@ -1,7 +1,7 @@
-// RDC-07 (DESIGN.md §9.3) : protocole JSON v1, fork de Letter Up adapté à 4 sièges. D4 : aucune révision dans `action`
+// RDC-07 (DESIGN.md §9.3) : protocole JSON v2, fork de Letter Up adapté à 4 sièges. D4 : aucune révision dans `action`
 // et aucun rejet `stale` (la négociation est concurrente, seule la validation du moteur fait foi).
 // Hypothèse réseau : parseMessage renvoie une copie normalisée (champs connus uniquement ; `rev` d'une action disparaît).
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 export const MESSAGE_TYPES = ['hello', 'welcome', 'refused', 'lobby', 'state', 'action', 'reject', 'ping', 'pong', 'new-game', 'resync'];
 export const REFUSED_REASONS = ['version', 'full', 'started', 'released', 'replaced'];
 export const SEAT_KINDS = ['host', 'open', 'guest', 'bot'];

@@ -1,4 +1,4 @@
-// RDC-04 (DESIGN.md §8.1) : politiques de l'IA, port de simulation/balance/python/engine.py (dépôt boardgame, a140245).
+// RDC-04 (DESIGN.md §8.1) : politiques de l'IA, port de simulation/balance/python/engine.py et textile_proposal.py (ProposalGame, next_rules=True, free_hand=False ; dépôt boardgame, 2e3094e).
 // Fonctions pures `(state, seat, …)` ; arithmétique simple, sans multiplication-addition fusionnée (« madd(a, b, c) » = a * b + c).
 import {
   ACTIVE_LIMIT,
@@ -8,6 +8,7 @@ import {
   RESOURCES,
   applyAction,
   canDeposit,
+  compensation,
   currentSeat,
   finalScores,
   isFriday,
@@ -84,7 +85,8 @@ export function chooseVisitDeposit(state, seat, artisan, policy = "opportunist")
   return pick;
 }
 
-const net = (s, seat) => s.players[seat].dh - 2 * s.players[seat].active.length;
+/** `net_scores` : DH − 2 × actives + demi-paiement des files incomplètes. */
+const net = (s, seat) => s.players[seat].dh - 2 * s.players[seat].active.length + compensation(s, seat);
 
 /** `visit_utility` : utilité d'une visite chez `artisan`, simulée sur un clone ; réservée au siège actif en phase `action`. */
 export function visitUtility(state, seat, artisan, policy = "opportunist") {
@@ -116,6 +118,12 @@ export function visitUtility(state, seat, artisan, policy = "opportunist") {
     if (q !== seat) rivalGain = Math.max(rivalGain, c.players[q].dh - state.players[q].dh);
   }
   u -= 0.12 * rivalGain;
+  // Demi-paiement final (next_rules) : une commande déposée ce tour et restée en file rapporte ⌊valeur / 2⌋ à la fin.
+  for (const e of c.artisans[artisan].queue) {
+    if (e.owner === seat && e.order.depositedAt === state.turn) {
+      u += Math.floor(CATALOG[e.order.type].reward / 2) * (0.3 - (0.1 + 0.2 * progress));
+    }
+  }
   if (state.endAfterTurn === null && c.endAfterTurn !== null && state.turn + 1 < c.endAfterTurn) {
     const rival = Math.max(...c.players.map((_, q) => q).filter((q) => q !== seat).map((q) => net(c, q)));
     u += Math.max(-3, Math.min(3, 0.15 * (net(c, seat) - rival)));

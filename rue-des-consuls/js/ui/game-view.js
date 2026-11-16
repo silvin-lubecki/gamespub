@@ -25,7 +25,7 @@ function topBar(view) {
   const last = view.endAfterTurn !== null ? '<span class="last-round">Dernier tour de table</span>' : '';
   return `<header class="stage-top"><div class="calendar" aria-label="Jour : ${DAYS[today]}">${cal}</div>`
     + `<span class="turn-name">Tour de <b>${esc(view.players[currentSeat(view)].name)}</b></span>${last}`
-    + `<span class="counts" title="Pioches Ressources / défausse, pioche Commandes">pioches ${view.resDrawCount}/${view.resDiscardCount} · commandes ${view.orderDeckCount}</span>`
+    + `<span class="counts" title="Pioches Ressources / défausse, pioche / défausse Commandes">pioches ${view.resDrawCount}/${view.resDiscardCount} · commandes ${view.orderDeckCount} · défausse ${view.orderDiscardCount}</span>`
     + '<span class="top-buttons">'
     + '<button type="button" class="icon-btn" id="btn-rules" data-act="rules" aria-label="Règles" title="Règles">i</button>'
     + '<button type="button" class="icon-btn" id="btn-fullscreen" data-act="fullscreen" aria-label="Plein écran" title="Plein écran">⛶</button>'
@@ -133,18 +133,19 @@ export function renderGame(view, ui) {
     + panel(view, ui, legal) + myBar(view, ui, mine);
 }
 
-/** Écran Fin : tableau DH − pénalités = score, produites, vainqueur(s), récapitulatif du dernier coup (RDC-08). */
+/** Écran Fin : tableau DH + files (½) − pénalités = score, produites, vainqueur(s), récapitulatif du dernier coup (RDC-08). */
 export function renderEnd(view, lastMove = []) {
   const { players, winners } = finalScores(view);
   const names = winners.map((s) => esc(view.players[s].name));
   const title = names.length > 1 ? `Victoire partagée : ${names.join(' et ')}` : `Victoire de ${names[0]}`;
   const rows = players.map((r) => `<tr class="${r.rank === 1 ? 'is-winner' : ''}"><td>${r.rank}</td>`
     + `<td><span class="seat-chip" style="background:${SEAT_COLORS[r.seat].hex}">${SEAT_COLORS[r.seat].initial}</span>${esc(view.players[r.seat].name)}</td>`
-    + `<td>${r.dh}</td><td>−${r.penalty}</td><td><b>${r.net}</b></td><td>${r.produced}</td></tr>`).join('');
+    + `<td>${r.dh}</td><td>+${r.compensation}</td><td>−${r.penalty}</td><td><b>${r.net}</b></td><td>${r.produced}</td></tr>`).join('');
   return `<h2 class="end-title">${title}</h2>`
     + '<table class="scores"><thead><tr><th>Rang</th><th>Joueur</th><th>DH</th>'
+    + '<th title="moitié de la valeur imprimée, arrondie à l\'inférieur, de chaque commande restée dans une file incomplète">Files (½)</th>'
     + `<th title="${ACTIVE_PENALTY} DH par commande active">Pénalité</th><th>Score</th><th>Produites</th></tr></thead><tbody>${rows}</tbody></table>`
-    + `<p class="hint">Score = DH − ${ACTIVE_PENALTY} × commandes actives ; égalité : plus de commandes produites.</p>`
+    + `<p class="hint">Score = DH + ½ des files incomplètes (par carte, arrondi à l'inférieur) − ${ACTIVE_PENALTY} × commandes actives ; égalité : plus de commandes produites.</p>`
     + (lastMove.length ? `<h3 class="end-recap-title">Dernier coup</h3><ul class="end-recap">${lastMove.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>` : '')
     + '<p class="end-buttons"><button type="button" class="btn" data-act="replay">Rejouer</button> '
     + '<button type="button" class="btn" data-act="home">Accueil</button></p>';

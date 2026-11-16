@@ -241,7 +241,7 @@ body[data-screen="game"] .app-header, body[data-screen="game"] #status { display
 .stage [data-zoom] { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 
 /* RDC-06 : panneau Marché (DESIGN.md §7.2) et badge IA. */
-.stage-center.is-market { justify-content: flex-start; padding: 4px; }
+.stage-center.is-market { justify-content: flex-start; padding: 4px; min-height: 0; }
 .market-panel {
   display: flex; flex-direction: column; gap: 4px; min-height: 0; height: 100%; padding: 4px 6px; box-sizing: border-box;
   border-radius: 6px; background: rgba(255, 250, 240, 0.93);
@@ -285,6 +285,19 @@ body[data-screen="game"] .app-header, body[data-screen="game"] #status { display
 .offer-buttons .btn { padding: 3px 8px; font-size: 12px; }
 .sheet { width: 100%; border-collapse: collapse; font-size: 12px; }
 .sheet th, .sheet td { padding: 2px 4px; border-bottom: 1px solid #d9c7a0; text-align: left; }
+/* RDC-12 : fiche Ressources à deux onglets (recto / verso), défilement interne. */
+.market-panel.is-sheet .sheet-body { flex: 1; min-height: 0; overflow: auto; }
+.sheet-tabs { display: flex; gap: 4px; align-items: center; }
+.sheet-tab {
+  padding: 3px 10px; border: 2px solid #b89c68; border-radius: 6px; background: #fffaf0; color: var(--fg);
+  font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.sheet-tab.is-selected { border-color: var(--accent); background: #f6e7b0; }
+.sheet-tabs .btn { margin-left: auto; padding: 3px 8px; font-size: 12px; }
+.sheet-row td { border-bottom: 0; }
+.sheet-blurb td { padding-top: 0; font-size: 11px; color: #5b4a3a; }
+.sheet-renown { color: var(--accent); }
+.sheet-summary { margin: 0 0 3px; font-size: 11px; text-align: center; }
 .bot-badge { display: inline-block; margin-bottom: 2px; padding: 0 5px; border-radius: 4px; background: #5b4a3a; color: #fff; font-size: 10px; }
 .name-field { display: flex; flex-direction: column; gap: 0.25rem; font-weight: 700; }
 .name-field input, .solo-setup select { padding: 0.4rem; border: 2px solid var(--accent); border-radius: 6px; background: #fffaf0; font: inherit; }

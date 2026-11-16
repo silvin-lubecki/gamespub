@@ -96,7 +96,8 @@ export function mountGame(root, controller, { onEnd, onQuit, onRules } = {}) {
       ui.offer = counterComposer(offer, view);
       render();
     },
-    'res-sheet': () => { ui.sheet = !ui.sheet; render(); },
+    'res-sheet': () => { ui.sheet = ui.sheet ? false : 'resources'; render(); },
+    'sheet-tab': (el) => { ui.sheet = el.dataset.tab === 'trades' ? 'trades' : 'resources'; render(); },
     endVisit: () => run({ type: 'endVisit' }),
     'mode-take': () => { ui.mode = ui.mode === 'take' ? null : 'take'; render(); },
     'mode-visit': () => { ui.mode = ui.mode === 'visit' ? null : 'visit'; render(); },

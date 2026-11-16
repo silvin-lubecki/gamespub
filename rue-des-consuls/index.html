@@ -31,12 +31,15 @@
         <li><b>Prendre</b> : choisissez une commande de la rivière (3 commandes actives au maximum).</li>
         <li><b>Visiter</b> : chez <b>un seul artisan</b>, déposez vos commandes réalisables en payant leur recette. Impossible le vendredi.</li>
         <li>Quand la file d'un artisan est pleine, il <b>produit</b> : chaque commande rapporte des DH, la majorité stricte gagne +2 DH, et l'artisan devient <b>Renommé</b> (primes, commandes verrouillées 🔒 accessibles).</li>
+        <li><b>Lundi</b> : à chaque retour au lundi (pas au premier), les 5 commandes de la rivière partent dans une <b>défausse Commande</b> et 5 nouvelles sont révélées ; si la pioche est vide, cette défausse est remélangée.</li>
         <li>Limite de main : <b>10 ressources</b> en fin de tour (les plus anciennes sont défaussées).</li>
-        <li>Fin : dès qu'un joueur a <b>7 commandes produites</b>, on termine le tour de table. Score = DH − 2 × commandes encore actives.</li>
+        <li>Fin : dès qu'un joueur a <b>7 commandes produites</b>, on termine le tour de table. Score = DH + ½ des files incomplètes (par carte, arrondi à l'inférieur) − 2 × commandes encore actives.</li>
       </ul>
       <h2>Règle complète</h2>
       <p>Mise en place : 5 ressources et 2 commandes Départ par joueur, rivière de 5 commandes (jamais plus de 2 du même artisan à la mise en place), premier joueur tiré au sort. Un tour = une action, puis la limite de main pour tous. Le calendrier avance d'un jour après chaque tour de table complet (Lundi à Vendredi, puis Lundi) ; le vendredi, les artisans sont fermés : on ne peut que prendre une commande ou ouvrir le Marché.</p>
-      <p>Visite : le premier dépôt choisit l'artisan, les suivants doivent viser le même ; chaque dépôt défausse les copies les plus anciennes de la recette. Production : chaque commande du lot paie sa récompense (+ prime si l'artisan était déjà Renommé) ; le joueur qui a le plus de commandes dans le lot, strictement, gagne +2 DH. Les files incomplètes ne comptent pas à la fin. Classement par score, puis par commandes produites ; sinon victoire partagée.</p>
+      <p>Visite : le premier dépôt choisit l'artisan, les suivants doivent viser le même ; chaque dépôt défausse les copies les plus anciennes de la recette. Production : chaque commande du lot paie sa récompense (+ prime si l'artisan était déjà Renommé) ; le joueur qui a le plus de commandes dans le lot, strictement, gagne +2 DH. Classement par score, puis par commandes produites ; sinon victoire partagée.</p>
+      <p>Lundi : chaque fois que le calendrier revient à Lundi (tour 20, 40…, jamais au premier lundi), avant le tour du premier joueur, les commandes de la rivière sont défaussées dans une défausse Commande séparée, puis 5 nouvelles sont révélées avec le même filtre (jamais plus de 2 du même artisan). Quand la pioche Commande est vide, la défausse est remélangée pour la reformer, y compris en pleine révélation ou en pleine purge ; les commandes actives, les files, les commandes produites et les Départ écartées ne sont jamais recyclées. Les commandes actives et les files ne sont jamais purgées.</p>
+      <p>Décompte final : chaque commande restée dans une file incomplète rapporte la moitié de sa valeur imprimée, arrondie à l'inférieur (par carte), sans prime ni majorité ; elle ne compte ni pour le seuil de 7 ni pour le départage. Exemple : 24 DH + 2 pour une file incomplète − 4 pour deux commandes actives = 22.</p>
       <h2>Hypothèses de cette version</h2>
       <ul>
         <li><b>H1</b> 4 sièges exactement ; tout siège non occupé par un humain au lancement devient une IA.</li>
@@ -50,9 +53,11 @@
         <li><b>H9</b> Les DH sont des entiers ; un score négatif est possible.</li>
         <li><b>H10</b> Le premier joueur est tiré au sort et reste le même toute la partie (jeton affiché).</li>
         <li><b>H11</b> Égalité finale : plus de commandes produites, sinon victoire partagée.</li>
-        <li><b>H12</b> Pioche de commandes épuisée : la rivière peut compter moins de 5 cartes.</li>
+        <li><b>H12</b> Pioche Commande et défausse des commandes purgées toutes deux vides : la rivière peut compter moins de 5 cartes.</li>
         <li><b>H13</b> En ligne, l'hôte est autoritaire : s'il quitte, la partie est suspendue jusqu'à sa reprise (même lien).</li>
         <li><b>H14</b> Un joueur déconnecté fait attendre la partie ; l'hôte peut « Confier à l'IA » son siège, qui redevient humain à son retour.</li>
+        <li><b>H15</b> La main reste ordonnée comme dans la règle physique (paiements et limite de 10 par les plus anciennes) ; la main libre testée en simulation n'est pas proposée.</li>
+        <li><b>H16</b> La défausse Commande est cachée : seul son nombre est affiché.</li>
       </ul>
     </section>
   </main>
