@@ -9,6 +9,7 @@ import {
   MAJORITY_BONUS,
   MARKET_CARDS,
   RESOURCES,
+  RIVER_SIZE,
   THRESHOLD,
 } from "./catalog.js";
 import { drawResource, refillRiver, SEATS } from "./setup.js";
@@ -202,8 +203,9 @@ const HANDLERS = {
     order.takenAt = s.turn;
     player.active.push(order);
     events.push({ type: "take", seat, order: structuredClone(order) });
-    const added = refillRiver(s);
-    events.push({ type: "river", added: added ? structuredClone(added) : null });
+    const recycled = [];
+    const added = refillRiver(s, recycled);
+    events.push(...recycled, { type: "river", added: added ? structuredClone(added) : null });
     endTurn(s, events);
   },
 
@@ -262,6 +264,20 @@ function produce(s, artisan, events) {
   }
 }
 
+/**
+ * Purge du lundi (jamais au lundi de mise en place) : les commandes de la rivière partent dans la défausse Commande,
+ * puis la rivière est reconstituée avec le filtre ; le recyclage peut reprendre les cartes qu'on vient de purger.
+ * Les commandes actives et les files ne sont jamais purgées. Port de `purge_monday` (engine.py).
+ */
+function purgeMonday(s, events) {
+  const purged = s.river;
+  s.orderDiscard.push(...purged);
+  s.river = [];
+  const recycled = [];
+  for (let k = 0; k < RIVER_SIZE; k++) refillRiver(s, recycled);
+  events.push({ type: "purge", purged: structuredClone(purged), river: structuredClone(s.river) }, ...recycled);
+}
+
 /** Limite de main pour tous, tour suivant, fin de partie éventuelle. */
 function endTurn(s, events) {
   s.players.forEach((p, seat) => {
@@ -281,5 +297,6 @@ function endTurn(s, events) {
   } else {
     s.phase = "action";
     if (s.turn % SEATS === 0) events.push({ type: "day", day: day(s) });
+    if (s.turn % (5 * SEATS) === 0) purgeMonday(s, events);
   }
 }

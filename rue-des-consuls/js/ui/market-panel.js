@@ -5,6 +5,7 @@ import { currentSeat, hasCards } from '../engine/index.js';
 import { ASSETS } from './asset-map.js';
 import { esc, img } from './cards.js';
 import { offerText, recipientOf } from './messages.js';
+import { SHEET_TEXT } from './sheet-text.js';
 
 const NRES = RESOURCES.length;
 const zeros = () => new Array(NRES).fill(0);
@@ -78,12 +79,66 @@ export function offerAction(c, view) {
 /** Puis-je honorer `offer` (le destinataire donne `want`) ? Calculé sur ma propre main. */
 export const canAccept = (view, offer) => hasCards(view.players[view.you].hand, offer.want);
 
-/** Fiche Ressources : par ressource, cartes dans le jeu, commandes normales (hors Départ) qui la demandent, artisans concernés. */
-export function resourceSheet() {
+const normalOrders = () => CATALOG.filter((o) => !o.starter);
+const copiesOf = (orders) => orders.reduce((a, o) => a + o.copies, 0);
+
+/**
+ * Fiche Ressources, recto (RDC-12, port de resourcesheet.go) : par ressource, cartes dans le jeu, commandes normales
+ * (somme des copies, hors Départ) qui la demandent, artisans concernés (ordre des artisans) et phrase d'usage.
+ * Triée par nombre de cartes décroissant (tri stable).
+ */
+export function resourceSheet(text = SHEET_TEXT.resources) {
   return RESOURCES.map((res, r) => {
-    const orders = CATALOG.filter((o) => !o.starter && o.recipe[r] > 0);
-    const trades = [...new Set(orders.map((o) => ARTISANS[o.artisan].trade))];
-    return { resource: res, cards: res.count, orders: orders.length, trades };
+    const orders = normalOrders().filter((o) => o.recipe[r] > 0);
+    const artisans = ARTISANS.filter((_, k) => orders.some((o) => o.artisan === k));
+    return { index: r, resource: res, cards: res.count, orders: copiesOf(orders), artisans, trades: artisans.map((a) => a.trade), text: text[res.id] };
+  }).sort((a, b) => b.cards - a.cards);
+}
+
+/** Totaux de l'en-tête du recto : cartes, matières, commandes normales (copies). */
+export const sheetSummary = () => ({ cards: sum(RESOURCES.map((r) => r.count)), resources: NRES, orders: copiesOf(normalOrders()) });
+
+export function sheetHeader() {
+  const { cards, resources, orders } = sheetSummary();
+  return `${cards} cartes · ${resources} matières · ${orders} commandes normales`;
+}
+
+/** Longueur de file : ≤ 2 courte, 3 moyenne, ≥ 4 longue. */
+export const queueLength = (capacity) => (capacity <= 2 ? 'courte' : capacity === 3 ? 'moyenne' : 'longue');
+
+/** « A », « A et B », « A, B et C ». */
+export const frenchList = (items) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} et ${items[items.length - 1]}`);
+
+/** Objets féminins du catalogue (accord de « débloquée »), comme `feminineObjects` de resourcesheet.go. */
+const FEMININE_OBJECTS = new Set(['Porte']);
+
+/** Accorde le participe avec les objets : féminin seulement si tous sont féminins. */
+export function agree(participle, objects) {
+  const plural = objects.length > 1;
+  if (objects.some((o) => !FEMININE_OBJECTS.has(o))) return plural ? `${participle}s` : participle;
+  return plural ? `${participle}es` : `${participle}e`;
+}
+
+/** Effet de la face Renommé : « Renommé : +1 DH sur X et Y. » / « Renommée : Porte débloquée. ». */
+export function renownEffect(artisan, premiums, unlocked) {
+  const parts = [];
+  if (premiums.length) parts.push(`+1 DH sur ${frenchList(premiums)}`);
+  if (unlocked.length) parts.push(`${frenchList(unlocked)} ${agree('débloqué', unlocked)}`);
+  return `${artisan.feminine ? 'Renommée' : 'Renommé'} : ${parts.join(' ; ')}.`;
+}
+
+/** Fiche Ressources, verso (RDC-12) : par artisan, file, commandes normales (copies), DH min–max, ressources, phrase, Renommé. */
+export function tradeSheet(text = SHEET_TEXT.artisans) {
+  return ARTISANS.map((artisan, k) => {
+    const mine = normalOrders().filter((o) => o.artisan === k);
+    const rewards = mine.map((o) => o.reward);
+    const resources = RESOURCES.flatMap((_, r) => (mine.some((o) => o.recipe[r] > 0) ? [r] : []));
+    const premiums = mine.filter((o) => o.premium > 0).map((o) => o.name);
+    const unlocked = mine.filter((o) => o.locked).map((o) => o.name);
+    return {
+      index: k, artisan, queue: queueLength(artisan.capacity), orders: copiesOf(mine), dh: [Math.min(...rewards), Math.max(...rewards)],
+      resources, premiums, unlocked, renown: renownEffect(artisan, premiums, unlocked), text: text[artisan.id],
+    };
   });
 }
 
@@ -139,14 +194,32 @@ function offerRow(view, offer) {
     + (buttons ? `<span class="offer-buttons">${buttons}</span>` : '') + '</li>';
 }
 
-function sheetTable() {
-  const rows = resourceSheet().map((row) => `<tr><td>${resIcon(RESOURCES.indexOf(row.resource), 'mini-icon')}${esc(row.resource.name)}</td>`
-    + `<td>${row.cards}</td><td>${row.orders}</td><td>${esc(row.trades.join(', '))}</td></tr>`).join('');
-  return '<table class="sheet"><thead><tr><th>Ressource</th><th>Cartes</th><th>Commandes</th><th>Artisans</th></tr></thead>'
-    + `<tbody>${rows}</tbody></table><p class="hint">Commandes normales (hors Départ) qui demandent la ressource.</p>`;
+/** Corps de la fiche (RDC-12) : onglet 'resources' (recto) ou 'trades' (verso) ; tout texte passe par `esc`. */
+export function sheetHtml(tab, text = SHEET_TEXT) {
+  const tabBtn = (id, label) => `<button type="button" class="sheet-tab${tab === id ? ' is-selected' : ''}" role="tab" aria-selected="${tab === id}" data-act="sheet-tab" data-tab="${id}">${label}</button>`;
+  const bar = `<div class="sheet-tabs" role="tablist" aria-label="Fiche">${tabBtn('resources', 'Ressources')}${tabBtn('trades', 'Artisans')}`
+    + '<button type="button" class="btn" data-act="res-sheet">Retour au Marché</button></div>';
+  const artisanIcon = (a) => img(ASSETS.icon[a.id], a.trade, 'mini-icon');
+  let body;
+  if (tab === 'trades') {
+    const rows = tradeSheet(text.artisans).map((t) => `<tr class="sheet-row"><td>${artisanIcon(t.artisan)}${esc(t.artisan.trade)}</td>`
+      + `<td>${esc(t.queue)}</td><td>${t.orders}</td><td>${t.dh[0]}–${t.dh[1]}</td><td>${t.resources.map((r) => resIcon(r, 'mini-icon')).join('')}</td></tr>`
+      + `<tr class="sheet-blurb"><td colspan="5">${esc(t.text)}<br><b class="sheet-renown">${esc(t.renown)}</b></td></tr>`).join('');
+    body = '<p class="sheet-summary">Ce que chaque métier demande et ce qu’il rapporte</p>'
+      + '<table class="sheet sheet-trades"><thead><tr><th>Artisan</th><th>File</th><th>Commandes</th><th>DH</th><th>Ressources</th></tr></thead>'
+      + `<tbody>${rows}</tbody></table><p class="hint">DH : de la commande normale la moins payée à la mieux payée, sans la prime de renommée.</p>`;
+  } else {
+    const rows = resourceSheet(text.resources).map((row) => `<tr class="sheet-row"><td>${resIcon(row.index, 'mini-icon')}${esc(row.resource.name)}</td>`
+      + `<td>${row.cards}</td><td>${row.orders}</td><td>${row.artisans.map((a) => `${artisanIcon(a)}${esc(a.trade)}`).join(', ')}</td></tr>`
+      + `<tr class="sheet-blurb"><td colspan="4">${esc(row.text)}</td></tr>`).join('');
+    body = `<p class="sheet-summary">${esc(sheetHeader())}</p>`
+      + '<table class="sheet sheet-resources"><thead><tr><th>Ressource</th><th>Cartes</th><th>Commandes</th><th>Artisans</th></tr></thead>'
+      + `<tbody>${rows}</tbody></table><p class="hint">Cartes : total du paquet, pas le stock disponible. Commandes : commandes normales qui la demandent (Départ exclues). La rareté n’impose aucun taux de change : négociez selon vos projets !</p>`;
+  }
+  return `${bar}<div class="sheet-body" role="tabpanel">${body}</div>`;
 }
 
-/** Panneau Marché : `ui` = { offer: compositeur, sheet: bool }. */
+/** Panneau Marché : `ui` = { offer: compositeur, sheet: false | 'resources' | 'trades' (true = 'resources') }. */
 export function renderMarketPanel(view, ui) {
   const active = currentSeat(view);
   const activeName = esc(view.players[active].name);
@@ -154,7 +227,7 @@ export function renderMarketPanel(view, ui) {
     + `<span class="hint">Les échanges se font uniquement avec ${activeName}</span>`
     + `<button type="button" class="icon-btn" id="btn-res-sheet" data-act="res-sheet" aria-label="Fiche Ressources" title="Fiche Ressources">i</button></header>`;
   if (ui.sheet) {
-    return `<section class="market-panel">${head}${sheetTable()}<button type="button" class="btn" data-act="res-sheet">Retour au Marché</button></section>`;
+    return `<section class="market-panel is-sheet">${head}${sheetHtml(ui.sheet === 'trades' ? 'trades' : 'resources')}</section>`;
   }
   const c = ui.offer ?? syncComposer(emptyComposer(), view);
   const target = targetOf(c, view);
